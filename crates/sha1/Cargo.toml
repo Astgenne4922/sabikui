@@ -1,0 +1,12 @@
+[package]
+name = "sha1"
+version = "0.0.0"
+description = "A sha1 calculator for sabikui"
+
+repository.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+sha1 = "0.10.6"
+base16ct.workspace = true
