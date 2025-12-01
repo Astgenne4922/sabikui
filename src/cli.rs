@@ -2,7 +2,7 @@ use crate::algorithms;
 
 pub mod parser;
 
-pub fn run(args: parser::Inputs) {
+pub fn run(args: parser::Inputs, algorithms: &[String]) {
     let files = match args {
         parser::Inputs::File { path } if path.exists() && path.is_file() => vec![path],
         parser::Inputs::Files { paths } if paths.iter().all(|p| p.exists() && p.is_file()) => paths,
@@ -15,13 +15,11 @@ pub fn run(args: parser::Inputs) {
             .unwrap()
             .filter_map(|entry| entry.as_ref().unwrap().is_file().then(|| entry.unwrap()))
             .collect(),
-        _ => panic!("Invalid argument"),
+        _ => panic!("Invalid argument"), // TODO handle errors
     };
 
-    let functions = algorithms::get_hash_functions();
-
-    let mut output = format!("filename,{}", functions.join(","));
-    let digests = algorithms::many_hashes_many_files(&functions, &files);
+    let mut output = format!("filename,{}", algorithms.join(","));
+    let digests = algorithms::many_hashes_many_files(&algorithms, &files);
 
     for i in 0..files.len() {
         output = format!(

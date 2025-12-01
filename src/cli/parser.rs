@@ -12,6 +12,10 @@ pub struct Args {
     /// List all available hashing functions
     #[arg(short, long, default_value_t = false)]
     pub list: bool,
+
+    /// Use only the specified algorithms (must be available)
+    #[arg(short, long, global = true)]
+    pub algorithms: Option<Vec<String>>,
 }
 
 #[derive(Subcommand)]
