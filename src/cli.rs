@@ -21,7 +21,7 @@ pub fn run(args: parser::Inputs) {
     let functions = algorithms::get_hash_functions();
 
     let mut output = format!("filename,{}", functions.join(","));
-    let digests = algorithms::digest_many(&functions, &files);
+    let digests = algorithms::many_hashes_many_files(&functions, &files);
 
     for i in 0..files.len() {
         output = format!(

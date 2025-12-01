@@ -9,6 +9,7 @@ pub struct Args {
     #[command(subcommand)]
     pub input: Option<Inputs>,
 
+    /// List all available hashing functions
     #[arg(short, long, default_value_t = false)]
     pub list: bool,
 }

@@ -1,14 +1,14 @@
-use crate::{algorithms::get_hash_functions, cli::parser};
-use clap::Parser as _;
-
 mod algorithms;
 mod cli;
+mod gui;
+
+use cli::parser::Parser as _;
 
 fn main() {
-    let args = parser::Args::parse();
+    let args = cli::parser::Args::parse();
 
     if args.list {
-        for hash in get_hash_functions() {
+        for hash in algorithms::get_hash_functions() {
             println!("{hash}");
         }
 
@@ -19,6 +19,6 @@ fn main() {
         Some(inputs) => {
             cli::run(inputs);
         }
-        None => todo!(), // gui::run()
+        None => gui::run(),
     }
 }
