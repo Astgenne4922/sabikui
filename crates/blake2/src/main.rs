@@ -1,4 +1,4 @@
-use sha1::{Digest as _, Sha1};
+use blake2::{Blake2b512, Digest as _};
 use std::{fs, io};
 
 fn main() {
@@ -6,7 +6,7 @@ fn main() {
 
     for file in &args[1..] {
         let mut file = fs::File::open(file).unwrap();
-        let mut hasher = Sha1::new();
+        let mut hasher = Blake2b512::new();
         io::copy(&mut file, &mut hasher).unwrap();
 
         println!("{}", base16ct::lower::encode_string(&hasher.finalize()));

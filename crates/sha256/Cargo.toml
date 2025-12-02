@@ -1,15 +1,15 @@
 [package]
-name = "sabikui-sha1"
+name = "sabikui-sha256"
 version = "0.0.0"
-description = "A SHA1 calculator for sabikui"
+description = "A SHA256 calculator for sabikui"
 
 repository.workspace = true
 authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-sha1 = "0.10.6"
+sha2 = "0.10.9"
 base16ct.workspace = true
 
 [[bin]]
-name = "sha1"
+name = "sha256"

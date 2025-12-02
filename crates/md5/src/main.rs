@@ -1,4 +1,4 @@
-use sha1::{Digest as _, Sha1};
+use md5::{Digest as _, Md5};
 use std::{fs, io};
 
 fn main() {
@@ -6,7 +6,7 @@ fn main() {
 
     for file in &args[1..] {
         let mut file = fs::File::open(file).unwrap();
-        let mut hasher = Sha1::new();
+        let mut hasher = Md5::new();
         io::copy(&mut file, &mut hasher).unwrap();
 
         println!("{}", base16ct::lower::encode_string(&hasher.finalize()));

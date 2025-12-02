@@ -1,15 +1,15 @@
 [package]
-name = "sabikui-sha1"
+name = "sabikui-md5"
 version = "0.0.0"
-description = "A SHA1 calculator for sabikui"
+description = "A MD5 calculator for sabikui"
 
 repository.workspace = true
 authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-sha1 = "0.10.6"
+md-5 = "0.10.6"
 base16ct.workspace = true
 
 [[bin]]
-name = "sha1"
+name = "md5"
