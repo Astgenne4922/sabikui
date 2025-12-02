@@ -13,3 +13,4 @@ base16ct.workspace = true
 
 [[bin]]
 name = "blake2b512"
+path = "src/main.rs"

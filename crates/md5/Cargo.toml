@@ -13,3 +13,4 @@ base16ct.workspace = true
 
 [[bin]]
 name = "md5"
+path = "src/main.rs"

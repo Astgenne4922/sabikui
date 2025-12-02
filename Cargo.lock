@@ -496,14 +496,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "blake2b512"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "blake2",
-]
-
-[[package]]
 name = "block"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1866,14 +1858,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "md5"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "md-5",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2757,6 +2741,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "sabikui-blake2b512"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "blake2",
+]
+
+[[package]]
+name = "sabikui-md5"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "md-5",
+]
+
+[[package]]
+name = "sabikui-sha1"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "sha1",
+]
+
+[[package]]
+name = "sabikui-sha256"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "sha2",
+]
+
+[[package]]
+name = "sabikui-sha3-256"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "sha3",
+]
+
+[[package]]
+name = "sabikui-sha3-512"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "sha3",
+]
+
+[[package]]
+name = "sabikui-sha512"
+version = "0.0.0"
+dependencies = [
+ "base16ct",
+ "sha2",
+]
+
+[[package]]
 name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2833,14 +2873,6 @@ dependencies = [
 
 [[package]]
 name = "sha1"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha1 0.10.6",
-]
-
-[[package]]
-name = "sha1"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3bf829a2d51ab4a5ddf1352d8470c140cadc8301b2ae1789db023f01cedd6ba"
@@ -2862,14 +2894,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sha256"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha2",
-]
-
-[[package]]
 name = "sha3"
 version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2877,30 +2901,6 @@ checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
 dependencies = [
  "digest",
  "keccak",
-]
-
-[[package]]
-name = "sha3-256"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha3",
-]
-
-[[package]]
-name = "sha3-512"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha3",
-]
-
-[[package]]
-name = "sha512"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha2",
 ]
 
 [[package]]

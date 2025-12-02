@@ -13,3 +13,4 @@ base16ct.workspace = true
 
 [[bin]]
 name = "sha3-256"
+path = "src/main.rs"
