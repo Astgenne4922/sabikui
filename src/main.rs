@@ -15,14 +15,12 @@ fn main() {
         return;
     }
 
-    let mut algs = algorithms::get_hash_functions();
+    let mut functions = algorithms::get_hash_functions();
+    if let Some(algorithms) = args.algorithms {
+        functions.retain(|a| algorithms.contains(a));
+    }
 
-    match args.algorithms {
-        Some(algorithms) => algs = algs.into_iter().filter(|a| algorithms.contains(a)).collect(),
-        None => (),
-    };
-
-    if algs.len() == 0 {
+    if functions.is_empty() {
         println!("Algorithm names not supported/recognized");
 
         return;
@@ -30,7 +28,7 @@ fn main() {
 
     match args.input {
         Some(inputs) => {
-            cli::run(inputs, &algs);
+            cli::run(inputs, &functions);
         }
         None => gui::run(),
     }

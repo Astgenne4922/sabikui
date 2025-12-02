@@ -19,7 +19,7 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
     };
 
     let mut output = format!("filename,{}", algorithms.join(","));
-    let digests = algorithms::many_hashes_many_files(&algorithms, &files);
+    let digests = algorithms::many_hashes_many_files(algorithms, &files);
 
     for i in 0..files.len() {
         output = format!(
