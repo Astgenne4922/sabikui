@@ -8,6 +8,11 @@ repository.workspace = true
 authors.workspace = true
 edition.workspace = true
 
+[lints.clippy]
+correctness = "warn"
+pedantic = "warn"
+nursery = "warn"
+
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"] }
 eframe = "0.33.2"
