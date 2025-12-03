@@ -15,20 +15,45 @@ struct Sabikui {
     files: Vec<HashedFile>,
     menu: Menu,
     body: Body,
+    font: egui::FontDefinitions,
 }
 
 impl Sabikui {
     pub fn new(_cc: &CreationContext<'_>) -> Self {
+        let mut fonts = egui::FontDefinitions::default();
+
+        fonts.font_data.insert(
+            "jet_brains_mono_nerd".to_owned(),
+            std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
+                "../assets/JetBrainsMonoNerdFontMono-Regular.ttf"
+            ))),
+        );
+
+        fonts
+            .families
+            .get_mut(&egui::FontFamily::Proportional)
+            .unwrap()
+            .insert(0, "jet_brains_mono_nerd".to_owned());
+
+        fonts
+            .families
+            .get_mut(&egui::FontFamily::Monospace)
+            .unwrap()
+            .push("jet_brains_mono_nerd".to_owned());
+
         Self {
             files: Vec::default(),
             menu: Menu::default(),
             body: Body::default(),
+            font: fonts,
         }
     }
 }
 
 impl App for Sabikui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        ctx.set_fonts(self.font.clone());
+
         self.menu.show(ctx, &mut self.files);
         let active_algorithms = self.menu.algorithm_list();
 
