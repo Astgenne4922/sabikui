@@ -49,75 +49,195 @@ impl Menu {
     }
 
     fn tool_bar(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
-
         // TODO Toolbar
-        // [ ] add file
-        // [ ] add folder
-        // [ ] add wildcard
-        // [ ] clear all
+        ui.horizontal(|ui| {
+            ui.style_mut().override_font_id = Some(egui::FontId::proportional(24.0));
 
-        // [ ] Save selected
-        // [ ] Refresh
-        // [ ] Copy Selected
+            if ui.button("󰆓").on_hover_text("Save Selected").clicked() {
+                // [ ] Save selected
+            }
+
+            if ui.button("󰑐").on_hover_text("Refresh").clicked() {
+                // [ ] Refresh
+            }
+
+            ui.separator();
+
+            if ui.button("").on_hover_text("Add File").clicked() {
+                // [ ] add file
+            }
+
+            if ui.button("󰉗").on_hover_text("Add Folder").clicked() {
+                // [ ] add folder
+            }
+
+            if ui.button("").on_hover_text("Add by Wildcard").clicked() {
+                // [ ] add wildcard
+            }
+
+            ui.separator();
+
+            if ui.button("󰾂").on_hover_text("Select All").clicked() {
+                // [ ] Select all
+            }
+
+            if ui.button("󰆏").on_hover_text("Copy Selected").clicked() {
+                // [ ] Copy Selected
+            }
+
+            if ui.button("󰗨").on_hover_text("Clear All").clicked() {
+                // [ ] clear all
+            }
+        });
     }
 
     fn file_menu(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
         // TODO File
-        // [ ] add file - F2
-        // [ ] add folder - F3
-        // [ ] add wildcard - F4
+        ui.menu_button("File", |ui| {
+            if ui.button("Add File                F2").clicked() {
+                // [ ] add file - F2
+            }
 
-        // [ ] clear all - CTRL+X
-        // [ ] clear selected - Del
-        // [ ] Save selected - CTRL+S
+            if ui.button("Add Folder              F3").clicked() {
+                // [ ] add folder - F3
+            }
 
-        // [ ] exit
-        ui.menu_button("File", |ui| {});
+            if ui.button("Add by Wildcard         F4").clicked() {
+                // [ ] add wildcard - F4
+            }
+
+            ui.separator();
+
+            if ui.button("Save Selected     CTRL + S").clicked() {
+                // [ ] Save selected - CTRL+S
+            }
+
+            ui.separator();
+
+            if ui.button("Clear All         CTRL + X").clicked() {
+                // [ ] clear all - CTRL+X
+            }
+
+            if ui.button("Clear Selected         Del").clicked() {
+                // [ ] clear selected - Del
+            }
+
+            ui.separator();
+
+            if ui.button("Exit").clicked() {
+                // [ ] exit
+            }
+        });
     }
 
     fn edit_menu(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
         // TODO Edit
-        // [ ] Copy Selected - CTRL+C
-        // [ ] Explorer paste - CTRL+V
+        ui.menu_button("Edit", |ui| {
+            if ui.button("Copy Selected     CTRL + C").clicked() {
+                // [ ] Copy Selected - CTRL+C
+            }
 
-        // [ ] Copy [ALG]
+            if ui.button("Explorer Paste    CTRL + V").clicked() {
+                // [ ] Explorer paste - CTRL+V
+            }
 
-        // [ ] select all - CTRL+A
-        // [ ] deselect all - CTRL+D
-        ui.menu_button("Edit", |ui| {});
+            ui.separator();
+
+            ui.menu_button("Copy", |ui| {
+                for (alg, _) in &mut self.algorithms {
+                    // [ ] Copy [ALG]
+                    if ui.button(alg.to_ascii_uppercase()).clicked() {}
+                }
+            });
+
+            ui.separator();
+
+            if ui.button("Select All        CTRL + A").clicked() {
+                // [ ] select all - CTRL+A
+            }
+
+            if ui.button("Deselect All      CTRL + D").clicked() {
+                // [ ] deselect all - CTRL+D
+            }
+        });
     }
 
     fn view_menu(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
-        // TODO View
-        // [ ] Sort by
-        //     / Filename
-        //     / [ALG]
-        //     / Last Edit
-        //     / File Size
-        //     / Extension
-        // [ ] Choose columns
-        // [ ] Refresh - F5
-        ui.menu_button("View", |ui| {});
+        ui.menu_button("View", |ui| {
+            // TODO View
+
+            ui.menu_button("Sort By", |ui| {
+                // [ ] Sort by
+
+                if ui.button("Filename").clicked() {
+                    //     / Filename
+                }
+
+                ui.menu_button("Algorithm", |ui| {
+                    //     / [ALG]
+                });
+
+                if ui.button("Edit Time").clicked() {
+                    //     / Edit Time
+                }
+
+                if ui.button("File Size").clicked() {
+                    //     / File Size
+                }
+
+                if ui.button("Extension").clicked() {
+                    //     / Extension
+                }
+            });
+
+            if ui.button("Refresh       F5").clicked() {
+                // [ ] Refresh - F5
+            }
+        });
     }
 
     fn options_menu(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
         ui.menu_button("Options", |ui| {
-            ui.menu_button("Algorithms", |ui| {
-                // [ ] Algorithms
-                for (alg, is_checked) in &mut self.algorithms {
-                    if ui.checkbox(is_checked, alg.to_string()).changed() {
-                        for file in files.iter_mut() {
-                            if *is_checked {
-                                file.add_digest_for(alg);
-                            } else {
-                                file.remove_digest(alg);
+            ui.menu_button("Choose Columns", |ui| {
+                if ui.button("Filename").clicked() {
+                    //     / Filename
+                }
+
+                ui.menu_button("Algorithms", |ui| {
+                    // [ ] Algorithms
+                    for (alg, is_checked) in &mut self.algorithms {
+                        let label = if *is_checked {
+                            format!("󰄬  {alg}")
+                        } else {
+                            format!("   {alg}")
+                        };
+                        if ui.button(label).clicked() {
+                            *is_checked = !*is_checked;
+                            for file in files.iter_mut() {
+                                if *is_checked {
+                                    file.add_digest_for(alg);
+                                } else {
+                                    file.remove_digest(alg);
+                                }
                             }
                         }
                     }
+                });
+
+                if ui.button("Edit Time").clicked() {
+                    //     / Edit Time
+                }
+
+                if ui.button("File Size").clicked() {
+                    //     / File Size
+                }
+
+                if ui.button("Extension").clicked() {
+                    //     / Extension
                 }
             });
 
-            if ui.button("Highlight identical hashes").clicked() {
+            if ui.button("Highlight identical Hashes").clicked() {
                 // [ ] Mark identical hashes
             }
 
