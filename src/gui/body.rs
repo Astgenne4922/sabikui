@@ -5,12 +5,6 @@ use std::collections::HashSet;
 use crate::gui::data::hashed_file::HashedFile;
 
 /*
-TODO Table
-    [ ] Select row with CTRL
-    [ ] Select row with SHIFT
-
-    [ ] Copy selected
-
 TODO Columns
     [ ] Filename
     [ ] [ALG]
@@ -31,6 +25,7 @@ TODO Context menu
 #[derive(Default)]
 pub struct Body {
     selected_rows: HashSet<usize>,
+    last_selected: usize,
 }
 
 impl Body {
@@ -93,10 +88,28 @@ impl Body {
                     }
 
                     if row.response().clicked() {
-                        if self.selected_rows.contains(&row.index()) {
-                            self.selected_rows.remove(&row.index());
+                        let index = row.index();
+                        if row.response().ctx.input(|i| i.modifiers.shift_only()) {
+                            let range = if index < self.last_selected {
+                                index..=self.last_selected
+                            } else {
+                                self.last_selected..=index
+                            };
+                            self.selected_rows.clear();
+                            for i in range {
+                                self.selected_rows.insert(i);
+                            }
                         } else {
-                            self.selected_rows.insert(row.index());
+                            if !row.response().ctx.input(|i| i.modifiers.command_only()) {
+                                self.selected_rows.clear();
+                                self.last_selected = 0;
+                            }
+                            if self.selected_rows.contains(&index) {
+                                self.selected_rows.remove(&index);
+                            } else {
+                                self.selected_rows.insert(index);
+                                self.last_selected = index;
+                            }
                         }
                     }
                 });
