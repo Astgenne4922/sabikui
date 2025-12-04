@@ -1,7 +1,14 @@
-use crate::gui::{body::Body, data::hashed_file::HashedFile, menu::Menu};
+use crate::gui::{
+    actions::{Action, ActionHandler},
+    body::Body,
+    data::hashed_file::HashedFile,
+    menu::Menu,
+};
 use eframe::{App, CreationContext, NativeOptions, run_native};
-use std::path::Path;
+use egui::{Key, KeyboardShortcut, Modifiers};
+use std::{path::Path, sync::mpsc};
 
+mod actions;
 mod body;
 mod data;
 mod menu;
@@ -16,6 +23,8 @@ struct Sabikui {
     menu: Menu,
     body: Body,
     font: egui::FontDefinitions,
+    action_handler: ActionHandler,
+    message_sender: mpsc::Sender<Action>,
 }
 
 impl Sabikui {
@@ -41,11 +50,15 @@ impl Sabikui {
             .unwrap()
             .push("jet_brains_mono_nerd".to_owned());
 
+        let (sx, rx) = mpsc::channel();
+
         Self {
             files: Vec::default(),
             menu: Menu::default(),
             body: Body::default(),
+            action_handler: ActionHandler::new(rx),
             font: fonts,
+            message_sender: sx,
         }
     }
 }
@@ -66,7 +79,7 @@ impl App for Sabikui {
                     self.hash_path(&active_algorithms, path);
                 }
             }
-        });
+        self.action_handler.handle(&mut self.files, &active_algorithms);
     }
 }
 

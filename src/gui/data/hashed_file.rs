@@ -5,8 +5,8 @@ use std::{
 
 use crate::algorithms::{self, many_hash_one_file};
 
-type HashFunction = String;
-type Digest = String;
+pub type HashFunction = String;
+pub type Digest = String;
 
 #[derive(Default)]
 pub struct HashedFile {
