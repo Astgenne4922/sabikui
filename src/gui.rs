@@ -54,7 +54,7 @@ impl Sabikui {
 
         Self {
             files: Vec::default(),
-            menu: Menu::default(),
+            menu: Menu::new(sx.clone()),
             body: Body::default(),
             action_handler: ActionHandler::new(rx),
             font: fonts,
@@ -72,13 +72,49 @@ impl App for Sabikui {
 
         self.body.show(ctx, &active_algorithms, &self.files);
 
-        ctx.input(|i| {
+        ctx.input_mut(|i| {
             if !i.raw.dropped_files.is_empty() {
                 for file in &i.raw.dropped_files {
                     let path = file.path.as_ref().unwrap();
                     self.hash_path(&active_algorithms, path);
                 }
             }
+
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::A)) {
+                self.message_sender.send(Action::SelectAll).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::C)) {
+                self.message_sender.send(Action::ClearSelected).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::D)) {
+                self.message_sender.send(Action::DeselectAll).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::S)) {
+                self.message_sender.send(Action::SaveSelected).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::V)) {
+                self.message_sender.send(Action::Paste).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::X)) {
+                self.message_sender.send(Action::ClearAll).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F2)) {
+                self.message_sender.send(Action::AddFile).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F3)) {
+                self.message_sender.send(Action::AddFolder).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F4)) {
+                self.message_sender.send(Action::AddWildcard).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F5)) {
+                self.message_sender.send(Action::Refresh).unwrap();
+            }
+            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::Delete)) {
+                self.message_sender.send(Action::ClearSelected).unwrap();
+            }
+        });
+
         self.action_handler.handle(&mut self.files, &active_algorithms);
     }
 }
