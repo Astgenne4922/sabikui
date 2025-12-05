@@ -125,7 +125,7 @@ impl Menu {
             ui.separator();
 
             if ui.button("Exit").clicked() {
-                ui.close_kind(egui::UiKind::Window);
+                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
             }
         });
     }
