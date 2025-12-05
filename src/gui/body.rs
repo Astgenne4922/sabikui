@@ -23,6 +23,9 @@ impl Body {
     }
     pub fn show(&mut self, ctx: &egui::Context, algorithms: &[String], files: &[HashedFile], columns: &[TableColumns]) {
         CentralPanel::default().show(ctx, |ui| {
+            let response = ui.interact(ui.min_rect(), ui.unique_id(), Sense::click());
+            self.context_menu(response, algorithms, files, columns);
+
             ScrollArea::horizontal()
                 .stick_to_bottom(true)
                 .auto_shrink(false)
