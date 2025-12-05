@@ -1,11 +1,15 @@
 use crate::{
     algorithms,
-    gui::{actions::Action, data::hashed_file::HashedFile},
+    gui::{
+        actions::Action,
+        data::{hashed_file::HashedFile, table_columns::TableColumns},
+    },
 };
 use egui::{MenuBar, TopBottomPanel};
 use std::{collections::HashMap, sync::mpsc};
 
 pub struct Menu {
+    pub columns: Vec<(TableColumns, bool)>,
     algorithms: HashMap<String, bool>,
     always_on_top: bool,
     message_sender: mpsc::Sender<Action>,
@@ -13,7 +17,17 @@ pub struct Menu {
 
 impl Menu {
     pub fn new(message_sender: mpsc::Sender<Action>) -> Self {
+        let mut cols = vec![(TableColumns::Path, true), (TableColumns::FileName, true)];
+        cols.extend(
+            algorithms::get_hash_functions()
+                .iter()
+                .map(|h| (TableColumns::Algorithms(h.to_owned()), true)),
+        );
+        cols.push((TableColumns::FileSize, true));
+        cols.push((TableColumns::LastEdit, true));
+        cols.push((TableColumns::Extension, true));
         Self {
+            columns: cols,
             algorithms: algorithms::get_hash_functions()
                 .iter()
                 .map(|h| (h.to_owned(), true))
@@ -206,17 +220,15 @@ impl Menu {
         ui.menu_button("Options", |ui| {
             // TODO Options Columns
             ui.menu_button("Choose Columns", |ui| {
-                if ui.button("Filename").clicked() {}
-
-                ui.menu_button("Algorithms", |ui| {
-                    for (alg, is_checked) in &mut self.algorithms {
-                        let label = if *is_checked {
-                            format!("󰄬  {alg}")
-                        } else {
-                            format!("   {alg}")
-                        };
-                        if ui.button(label).clicked() {
-                            *is_checked = !*is_checked;
+                for (column, is_checked) in &mut self.columns {
+                    let label = if *is_checked {
+                        format!("󰄬  {}", column.to_string())
+                    } else {
+                        format!("   {}", column.to_string())
+                    };
+                    if ui.button(label).clicked() {
+                        *is_checked = !*is_checked;
+                        if let TableColumns::Algorithms(alg) = column {
                             for file in files.iter_mut() {
                                 if *is_checked {
                                     file.add_digest_for(alg);
@@ -226,13 +238,7 @@ impl Menu {
                             }
                         }
                     }
-                });
-
-                if ui.button("Edit Time").clicked() {}
-
-                if ui.button("File Size").clicked() {}
-
-                if ui.button("Extension").clicked() {}
+                }
             });
 
             if ui.button("Highlight identical Hashes").clicked() {

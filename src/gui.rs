@@ -1,7 +1,7 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
     body::Body,
-    data::hashed_file::HashedFile,
+    data::{hashed_file::HashedFile, table_columns::TableColumns},
     menu::Menu,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
@@ -55,7 +55,7 @@ impl Sabikui {
         Self {
             files: Vec::default(),
             menu: Menu::new(sx.clone()),
-            body: Body::default(),
+            body: Body::new(sx.clone()),
             action_handler: ActionHandler::new(rx),
             font: fonts,
             message_sender: sx,
@@ -69,8 +69,14 @@ impl App for Sabikui {
 
         self.menu.show(ctx, &mut self.files);
         let active_algorithms = self.menu.algorithm_list();
+        let cols = self
+            .menu
+            .columns
+            .iter()
+            .filter_map(|(col, is_active)| if *is_active { Some(col.clone()) } else { None })
+            .collect::<Vec<_>>();
 
-        self.body.show(ctx, &active_algorithms, &self.files);
+        self.body.show(ctx, &active_algorithms, &self.files, &cols);
 
         ctx.input_mut(|i| {
             if !i.raw.dropped_files.is_empty() {
