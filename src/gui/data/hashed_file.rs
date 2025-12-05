@@ -1,8 +1,12 @@
 use std::{
     collections::HashMap,
-    os::windows::fs::MetadataExt,
     path::{Path, PathBuf},
 };
+
+#[cfg(unix)]
+use std::os::unix::fs::MetadataExt;
+#[cfg(target_os = "windows")]
+use std::os::windows::fs::MetadataExt;
 
 use crate::algorithms::{self, many_hash_one_file};
 
@@ -41,9 +45,16 @@ impl HashedFile {
         self.path.metadata().unwrap().modified().unwrap()
     }
 
+    #[cfg(unix)]
+    pub fn size(&self) -> u64 {
+        self.path.metadata().unwrap().size()
+    }
+
+    #[cfg(target_os = "windows")]
     pub fn size(&self) -> u64 {
         self.path.metadata().unwrap().file_size()
     }
+
     pub fn extension(&self) -> String {
         self.path.extension().unwrap().to_str().unwrap().to_owned()
     }
