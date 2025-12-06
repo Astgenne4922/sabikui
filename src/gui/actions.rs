@@ -69,14 +69,11 @@ fn explorer_paste() {
     println!("EXPLORER PASTE");
 }
 
-// TODO select all - CTRL+A
 fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    println!("SELECT ALL");
+    *selected_rows = HashSet::from_iter(0..num_rows);
+    *last_selected = 0;
 }
-// TODO deselect all - CTRL+D
-fn deselect_all() {
-    println!("DESELECT ALL");
-}
+
 // TODO Copy Selected - CTRL+C
 fn copy_selected() {
     println!("COPY SELECTED");
