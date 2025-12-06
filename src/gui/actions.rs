@@ -20,7 +20,7 @@ pub enum Action {
     ClearSelected,
     ClearAll,
     AddFiles(Option<Vec<PathBuf>>),
-    AddFolder,
+    AddFolders(Option<Vec<PathBuf>>),
     AddWildcard,
     CopyHash(String),
     SortBy(String),
@@ -55,6 +55,10 @@ impl ActionHandler {
                     let alg_list = state.algorithm_list();
                     add_files(new_files, &mut state.files, &alg_list);
                 }
+                Action::AddFolders(folders) => {
+                    let alg_list = state.algorithm_list();
+                    add_folders(folders, &mut state.files, &alg_list);
+                }
                 Action::AddWildcard => add_wildcard(),
                 Action::CopyHash(_) => copy_hash(),
                 Action::SortBy(_) => sort_by(),
@@ -68,7 +72,7 @@ fn refresh(files: &mut [HashedFile], algorithms: &[HashFunction]) {
     for file in files {
         *file = HashedFile::new(&file.path, algorithms);
     }
-}
+
 // TODO Explorer paste - CTRL+V
 fn explorer_paste() {
     println!("EXPLORER PASTE");
@@ -119,6 +123,13 @@ fn add_files(new_files: Option<Vec<PathBuf>>, files: &mut Vec<HashedFile>, algor
     }
 }
 
+fn add_folders(folders: Option<Vec<PathBuf>>, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+    let folders = folders.or_else(|| rfd::FileDialog::new().pick_folders());
+
+    if let Some(folders) = folders {
+        files.extend(HashedFile::build_vec(&get_files(&folders), algorithms));
+    }
+}
 
 // TODO add wildcard - F4
 fn add_wildcard() {
@@ -133,4 +144,34 @@ fn copy_hash() {
 // TODO Sort By
 fn sort_by() {
     println!("SORT BY");
+}
+
+fn get_files(paths: &[PathBuf]) -> Vec<PathBuf> {
+    let mut files = Vec::new();
+
+    for path in paths {
+        let mut dirs = VecDeque::new();
+
+        if path.is_file() {
+            files.push(path.clone());
+        } else if path.is_dir() {
+            dirs.push_back(path.clone());
+        }
+
+        while !dirs.is_empty() {
+            let dir = dirs.pop_front().unwrap();
+
+            for entry in dir.read_dir().unwrap().flatten() {
+                let path = entry.path();
+
+                if path.is_file() {
+                    files.push(path);
+                } else if path.is_dir() {
+                    dirs.push_back(path);
+                }
+            }
+        }
+    }
+
+    files
 }

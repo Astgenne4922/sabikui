@@ -60,7 +60,7 @@ impl Menu {
             }
 
             if ui.button("󰉗").on_hover_text("Add Folder").clicked() {
-                self.message_sender.send(Action::AddFolder).unwrap();
+                self.message_sender.send(Action::AddFolders(None)).unwrap();
             }
 
             if ui.button("").on_hover_text("Add by Wildcard").clicked() {
@@ -90,7 +90,7 @@ impl Menu {
             }
 
             if ui.button("Add Folder              F3").clicked() {
-                self.message_sender.send(Action::AddFolder).unwrap();
+                self.message_sender.send(Action::AddFolders(None)).unwrap();
             }
 
             if ui.button("Add by Wildcard         F4").clicked() {
