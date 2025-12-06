@@ -1,4 +1,8 @@
-use std::{collections::HashSet, sync::mpsc};
+use std::{
+    collections::{HashSet, VecDeque},
+    path::PathBuf,
+    sync::mpsc,
+};
 
 use crate::gui::data::{
     hashed_file::{HashFunction, HashedFile},
@@ -43,10 +47,9 @@ impl ActionHandler {
                 Action::DeselectAll => deselect_all(),
                 Action::CopySelected => copy_selected(),
                 Action::SaveSelected => save_selected(),
-                Action::ClearSelected => clear_selected(),
-                Action::ClearAll => clear_all(),
-                Action::AddFile => add_file(),
-                Action::AddFolder => add_folder(),
+                Action::ClearSelected => {
+                    clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected)
+                }
                 Action::AddWildcard => add_wildcard(),
                 Action::CopyHash(_) => copy_hash(),
                 Action::SortBy(_) => sort_by(),
@@ -82,18 +85,17 @@ fn copy_selected() {
 fn save_selected() {
     println!("SAVE SELECTED");
 }
-// TODO clear selected - Del
-fn clear_selected() {
-    println!("CLEAR SELECTED");
-}
-// TODO clear all - CTRL+X
-fn clear_all() {
-    println!("CLEAR ALL");
+
+fn clear_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
+    *files = files
+        .iter()
+        .enumerate()
+        .filter_map(|(i, file)| (!selected_rows.contains(&i)).then(|| file.clone()))
+        .collect::<Vec<_>>();
+    selected_rows.clear();
+    *last_selected = 0;
 }
 
-// TODO add file - F2
-fn add_file() {
-    println!("ADD FILE");
 }
 // TODO add folder - F3
 fn add_folder() {
