@@ -15,6 +15,7 @@ pub struct State {
     pub always_on_top: bool,
     pub selected_rows: HashSet<usize>,
     pub last_selected: usize,
+    pub to_copy: Option<String>,
 }
 
 impl State {
@@ -39,6 +40,7 @@ impl State {
             always_on_top: false,
             selected_rows: Default::default(),
             last_selected: Default::default(),
+            to_copy: Default::default(),
         }
     }
 

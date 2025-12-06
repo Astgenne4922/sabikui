@@ -84,8 +84,8 @@ impl App for Sabikui {
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::A)) {
                 self.message_sender.send(Action::SelectAll).unwrap();
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::C)) {
-                self.message_sender.send(Action::ClearSelected).unwrap();
+            if i.events.iter().any(|ev| matches!(ev, egui::Event::Copy)) {
+                self.message_sender.send(Action::CopySelected).unwrap();
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::D)) {
                 self.message_sender.send(Action::DeselectAll).unwrap();
@@ -117,5 +117,8 @@ impl App for Sabikui {
         });
 
         self.action_handler.handle(&mut self.state);
+        if let Some(to_copy) = self.state.to_copy.take() {
+            ctx.copy_text(to_copy);
+        }
     }
 }

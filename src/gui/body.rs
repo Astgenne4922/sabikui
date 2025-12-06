@@ -80,7 +80,7 @@ impl Body {
                                 TableColumns::Path => file.path.display().to_string(),
                                 TableColumns::FileName => file.file_name(),
                                 TableColumns::Algorithms(alg) => file.get_digest(&alg).unwrap().to_owned(),
-                                TableColumns::LastEdit => format!("{:?}", file.last_edit()),
+                                TableColumns::LastEdit => file.last_edit(),
                                 TableColumns::FileSize => file.size().to_string(),
                                 TableColumns::Extension => file.extension(),
                             };

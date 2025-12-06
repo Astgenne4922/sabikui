@@ -7,6 +7,7 @@ use std::{
 use crate::gui::data::{
     hashed_file::{HashFunction, HashedFile},
     state::State,
+    table_columns::TableColumns,
 };
 
 #[derive(Hash, PartialEq, Eq, Clone)]
@@ -45,7 +46,17 @@ impl ActionHandler {
                 Action::Paste => explorer_paste(),
                 Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
                 Action::DeselectAll => deselect_all(&mut state.selected_rows, &mut state.last_selected),
-                Action::CopySelected => copy_selected(),
+                Action::CopySelected => {
+                    state.to_copy = Some(copy_selected(
+                        &mut state.files,
+                        &mut state.selected_rows,
+                        &state
+                            .columns
+                            .iter()
+                            .filter_map(|(col, is_checked)| if *is_checked { Some(col.clone()) } else { None })
+                            .collect::<Vec<_>>(),
+                    ))
+                }
                 Action::SaveSelected => save_selected(),
                 Action::ClearSelected => {
                     clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected)
@@ -89,9 +100,29 @@ fn deselect_all(selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
     *last_selected = 0;
 }
 
-// TODO Copy Selected - CTRL+C
-fn copy_selected() {
-    println!("COPY SELECTED");
+fn copy_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, columns: &[TableColumns]) -> String {
+    let mut output = String::default();
+
+    for i in selected_rows.iter() {
+        let file = &files[*i];
+
+        let line = columns
+            .iter()
+            .map(|column| match column {
+                TableColumns::Path => file.path.display().to_string(),
+                TableColumns::FileName => file.file_name(),
+                TableColumns::Algorithms(alg) => file.get_digest(alg).unwrap().to_owned(),
+                TableColumns::LastEdit => file.last_edit(),
+                TableColumns::FileSize => file.size().to_string(),
+                TableColumns::Extension => file.extension(),
+            })
+            .collect::<Vec<_>>()
+            .join("\t");
+
+        output += &(line + "\n");
+    }
+
+    output
 }
 
 // TODO Save selected - CTRL+S

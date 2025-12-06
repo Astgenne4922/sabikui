@@ -14,6 +14,7 @@ pedantic = "warn"
 nursery = "warn"
 
 [dependencies]
+chrono = "0.4.42"
 clap = { version = "4.5.53", features = ["derive"] }
 eframe = "0.33.2"
 egui = "0.33.2"

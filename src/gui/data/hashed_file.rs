@@ -8,6 +8,8 @@ use std::os::unix::fs::MetadataExt;
 #[cfg(target_os = "windows")]
 use std::os::windows::fs::MetadataExt;
 
+use chrono::{DateTime, Utc};
+
 use crate::algorithms::{many_hash_one_file, many_hashes_many_files, one_hash_one_file};
 
 pub type HashFunction = String;
@@ -61,8 +63,9 @@ impl HashedFile {
         self.path.file_name().unwrap().to_str().unwrap().to_owned()
     }
 
-    pub fn last_edit(&self) -> std::time::SystemTime {
-        self.path.metadata().unwrap().modified().unwrap()
+    pub fn last_edit(&self) -> String {
+        let time: DateTime<Utc> = self.path.metadata().unwrap().modified().unwrap().into();
+        time.format("%Y-%m-%d %H:%M:%S").to_string()
     }
 
     #[cfg(unix)]
