@@ -50,6 +50,7 @@ impl ActionHandler {
                 Action::ClearSelected => {
                     clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected)
                 }
+                Action::ClearAll => clear_all(&mut state.files, &mut state.selected_rows, &mut state.last_selected),
                 Action::AddWildcard => add_wildcard(),
                 Action::CopyHash(_) => copy_hash(),
                 Action::SortBy(_) => sort_by(),
@@ -83,6 +84,7 @@ fn deselect_all(selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
 fn copy_selected() {
     println!("COPY SELECTED");
 }
+
 // TODO Save selected - CTRL+S
 fn save_selected() {
     println!("SAVE SELECTED");
@@ -98,10 +100,12 @@ fn clear_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize
     *last_selected = 0;
 }
 
+fn clear_all(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
+    files.clear();
+    selected_rows.clear();
+    *last_selected = 0;
 }
-// TODO add folder - F3
-fn add_folder() {
-    println!("ADD FOLDER");
+
 }
 // TODO add wildcard - F4
 fn add_wildcard() {

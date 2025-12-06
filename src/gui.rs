@@ -91,7 +91,7 @@ impl App for Sabikui {
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::V)) {
                 self.message_sender.send(Action::Paste).unwrap();
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::X)) {
+            if i.events.iter().any(|ev| matches!(ev, egui::Event::Cut)) {
                 self.message_sender.send(Action::ClearAll).unwrap();
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F2)) {
