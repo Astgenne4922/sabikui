@@ -5,7 +5,7 @@ use crate::gui::{
     menu::Menu,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
-use egui::{Key, KeyboardShortcut, Modifiers};
+use egui::{Event, Key, KeyboardShortcut, Modifiers};
 use std::sync::mpsc;
 
 mod actions;
@@ -93,8 +93,10 @@ impl App for Sabikui {
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::S)) {
                 self.message_sender.send(Action::SaveSelected).unwrap();
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::V)) {
-                self.message_sender.send(Action::Paste).unwrap();
+            for event in &i.events {
+                if let Event::Paste(to_paste) = event {
+                    self.message_sender.send(Action::Paste(to_paste.clone())).unwrap();
+                }
             }
             if i.events.iter().any(|ev| matches!(ev, egui::Event::Cut)) {
                 self.message_sender.send(Action::ClearAll).unwrap();

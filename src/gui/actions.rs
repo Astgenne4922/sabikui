@@ -1,6 +1,6 @@
 use std::{
     collections::{HashSet, VecDeque},
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::mpsc,
 };
 
@@ -13,7 +13,7 @@ use crate::gui::data::{
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub enum Action {
     Refresh,
-    Paste,
+    Paste(String),
     SelectAll,
     DeselectAll,
     CopySelected,
@@ -43,7 +43,10 @@ impl ActionHandler {
                     let alg_list = state.algorithm_list();
                     refresh(&mut state.files, &alg_list)
                 }
-                Action::Paste => explorer_paste(),
+                Action::Paste(to_paste) => {
+                    let alg_list = state.algorithm_list();
+                    explorer_paste(to_paste, &mut state.files, &alg_list)
+                }
                 Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
                 Action::DeselectAll => deselect_all(&mut state.selected_rows, &mut state.last_selected),
                 Action::CopySelected => {
@@ -85,9 +88,16 @@ fn refresh(files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
     );
 }
 
-// TODO Explorer paste - CTRL+V
-fn explorer_paste() {
-    println!("EXPLORER PASTE");
+fn explorer_paste(pasted: String, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+    let pasted_lines = pasted
+        .lines()
+        .filter_map(|path| {
+            let path = Path::new(path);
+            if path.exists() { Some(path.to_path_buf()) } else { None }
+        })
+        .collect::<Vec<_>>();
+
+    add_folders(Some(pasted_lines), files, algorithms);
 }
 
 fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {

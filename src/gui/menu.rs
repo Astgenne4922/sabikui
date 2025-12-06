@@ -2,7 +2,7 @@ use crate::gui::{
     actions::Action,
     data::{state::State, table_columns::TableColumns},
 };
-use egui::{MenuBar, TopBottomPanel};
+use egui::{Event, MenuBar, TopBottomPanel};
 use std::sync::mpsc;
 
 pub struct Menu {
@@ -128,7 +128,13 @@ impl Menu {
             }
 
             if ui.button("Explorer Paste    CTRL + V").clicked() {
-                self.message_sender.send(Action::Paste).unwrap();
+                ui.ctx().input(|i| {
+                    for event in &i.events {
+                        if let Event::Paste(to_paste) = event {
+                            self.message_sender.send(Action::Paste(to_paste.clone())).unwrap();
+                        }
+                    }
+                });
             }
 
             ui.separator();

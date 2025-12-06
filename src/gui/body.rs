@@ -1,4 +1,4 @@
-use egui::{Align, CentralPanel, Layout, Response, ScrollArea, Sense, TextStyle};
+use egui::{Align, CentralPanel, Event, Layout, Response, ScrollArea, Sense, TextStyle};
 use egui_extras::{Column, TableBuilder};
 use std::sync::mpsc;
 
@@ -144,7 +144,13 @@ impl Body {
             ui.separator();
 
             if ui.button("Explorer Paste    CTRL + V").clicked() {
-                self.message_sender.send(Action::Paste).unwrap();
+                ui.ctx().input(|i| {
+                    for event in &i.events {
+                        if let Event::Paste(to_paste) = event {
+                            self.message_sender.send(Action::Paste(to_paste.clone())).unwrap();
+                        }
+                    }
+                });
             }
 
             ui.separator();
