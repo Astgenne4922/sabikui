@@ -2,13 +2,16 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{
     algorithms,
-    gui::data::{hashed_file::HashedFile, table_columns::TableColumns},
+    gui::data::{
+        hashed_file::{HashFunction, HashedFile},
+        table_columns::TableColumns,
+    },
 };
 
 pub struct State {
     pub files: Vec<HashedFile>,
     pub columns: Vec<(TableColumns, bool)>,
-    pub algorithms: HashMap<String, bool>,
+    pub algorithms: HashMap<HashFunction, bool>,
     pub always_on_top: bool,
     pub selected_rows: HashSet<usize>,
     pub last_selected: usize,
@@ -39,7 +42,7 @@ impl State {
         }
     }
 
-    pub fn algorithm_list(&self) -> Vec<String> {
+    pub fn algorithm_list(&self) -> Vec<HashFunction> {
         let mut active_algorithms = self
             .algorithms
             .iter()
