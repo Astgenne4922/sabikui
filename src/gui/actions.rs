@@ -1,5 +1,6 @@
 use std::{
     collections::{HashSet, VecDeque},
+    fs,
     path::{Path, PathBuf},
     sync::mpsc,
 };
@@ -60,7 +61,15 @@ impl ActionHandler {
                             .collect::<Vec<_>>(),
                     ))
                 }
-                Action::SaveSelected => save_selected(),
+                Action::SaveSelected => save_selected(
+                    &mut state.files,
+                    &mut state.selected_rows,
+                    &state
+                        .columns
+                        .iter()
+                        .filter_map(|(col, is_checked)| if *is_checked { Some(col.clone()) } else { None })
+                        .collect::<Vec<_>>(),
+                ),
                 Action::ClearSelected => {
                     clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected)
                 }
@@ -135,9 +144,14 @@ fn copy_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>
     output
 }
 
-// TODO Save selected - CTRL+S
-fn save_selected() {
-    println!("SAVE SELECTED");
+fn save_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, columns: &[TableColumns]) {
+    if let Some(path) = &mut rfd::FileDialog::new().add_filter("csv", &["csv"]).save_file() {
+        path.set_extension("csv");
+        let mut to_save = columns.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(",");
+        to_save += &format!("\n{}", copy_selected(files, selected_rows, columns).replace('\t', ","));
+
+        fs::write(path, to_save).unwrap();
+    }
 }
 
 fn clear_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
