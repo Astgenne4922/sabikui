@@ -44,7 +44,7 @@ impl ActionHandler {
                 }
                 Action::Paste => explorer_paste(),
                 Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
-                Action::DeselectAll => deselect_all(),
+                Action::DeselectAll => deselect_all(&mut state.selected_rows, &mut state.last_selected),
                 Action::CopySelected => copy_selected(),
                 Action::SaveSelected => save_selected(),
                 Action::ClearSelected => {
@@ -71,6 +71,11 @@ fn explorer_paste() {
 
 fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
     *selected_rows = HashSet::from_iter(0..num_rows);
+    *last_selected = 0;
+}
+
+fn deselect_all(selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
+    selected_rows.clear();
     *last_selected = 0;
 }
 
