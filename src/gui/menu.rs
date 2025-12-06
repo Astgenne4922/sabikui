@@ -1,65 +1,42 @@
-use crate::{
-    algorithms,
-    gui::{
-        actions::Action,
-        data::{hashed_file::HashedFile, table_columns::TableColumns},
-    },
+use crate::gui::{
+    actions::Action,
+    data::{state::State, table_columns::TableColumns},
 };
 use egui::{MenuBar, TopBottomPanel};
-use std::{collections::HashMap, sync::mpsc};
+use std::sync::mpsc;
 
 pub struct Menu {
-    pub columns: Vec<(TableColumns, bool)>,
-    algorithms: HashMap<String, bool>,
-    always_on_top: bool,
     message_sender: mpsc::Sender<Action>,
 }
 
 impl Menu {
     pub fn new(message_sender: mpsc::Sender<Action>) -> Self {
-        let mut cols = vec![(TableColumns::Path, true), (TableColumns::FileName, true)];
-        cols.extend(
-            algorithms::get_hash_functions()
-                .iter()
-                .map(|h| (TableColumns::Algorithms(h.to_owned()), true)),
-        );
-        cols.push((TableColumns::FileSize, true));
-        cols.push((TableColumns::LastEdit, true));
-        cols.push((TableColumns::Extension, true));
-        Self {
-            columns: cols,
-            algorithms: algorithms::get_hash_functions()
-                .iter()
-                .map(|h| (h.to_owned(), true))
-                .collect::<HashMap<_, _>>(),
-            always_on_top: false,
-            message_sender,
-        }
+        Self { message_sender }
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, files: &mut [HashedFile]) {
-        if self.always_on_top {
+    pub fn show(&mut self, ctx: &egui::Context, state: &mut State) {
+        if state.always_on_top {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
         } else {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
         }
 
-        TopBottomPanel::top("top_panel").show(ctx, |ui| self.ui(ui, files));
+        TopBottomPanel::top("top_panel").show(ctx, |ui| self.ui(ui, state));
     }
 
-    fn ui(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
+    fn ui(&mut self, ui: &mut egui::Ui, state: &mut State) {
         ui.vertical(|ui| {
-            self.menu_bar(ui, files);
+            self.menu_bar(ui, state);
             self.tool_bar(ui);
         });
     }
 
-    fn menu_bar(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
+    fn menu_bar(&mut self, ui: &mut egui::Ui, state: &mut State) {
         MenuBar::new().ui(ui, |ui| {
             self.file_menu(ui);
-            self.edit_menu(ui);
-            self.view_menu(ui);
-            self.options_menu(ui, files);
+            self.edit_menu(ui, state);
+            self.view_menu(ui, state);
+            self.options_menu(ui, state);
             self.help_menu(ui);
         });
     }
@@ -144,7 +121,7 @@ impl Menu {
         });
     }
 
-    fn edit_menu(&mut self, ui: &mut egui::Ui) {
+    fn edit_menu(&mut self, ui: &mut egui::Ui, state: &mut State) {
         ui.menu_button("Edit", |ui| {
             if ui.button("Copy Selected     CTRL + C").clicked() {
                 self.message_sender.send(Action::CopySelected).unwrap();
@@ -157,7 +134,7 @@ impl Menu {
             ui.separator();
 
             ui.menu_button("Copy", |ui| {
-                for (alg, _) in &mut self.algorithms {
+                for (alg, _) in &mut state.algorithms {
                     if ui.button(alg.to_ascii_uppercase()).clicked() {
                         self.message_sender.send(Action::CopyHash(alg.to_owned())).unwrap();
                     }
@@ -176,7 +153,7 @@ impl Menu {
         });
     }
 
-    fn view_menu(&mut self, ui: &mut egui::Ui) {
+    fn view_menu(&mut self, ui: &mut egui::Ui, state: &mut State) {
         ui.menu_button("View", |ui| {
             ui.menu_button("Sort By", |ui| {
                 if ui.button("Filename").clicked() {
@@ -184,7 +161,7 @@ impl Menu {
                 }
 
                 ui.menu_button("Algorithm", |ui| {
-                    for (alg, _) in &self.algorithms {
+                    for (alg, _) in &state.algorithms {
                         if ui.button(alg.to_ascii_uppercase()).clicked() {
                             self.message_sender.send(Action::SortBy(alg.to_owned())).unwrap();
                         }
@@ -216,11 +193,11 @@ impl Menu {
         });
     }
 
-    fn options_menu(&mut self, ui: &mut egui::Ui, files: &mut [HashedFile]) {
+    fn options_menu(&mut self, ui: &mut egui::Ui, state: &mut State) {
         ui.menu_button("Options", |ui| {
             // TODO Options Columns
             ui.menu_button("Choose Columns", |ui| {
-                for (column, is_checked) in &mut self.columns {
+                for (column, is_checked) in &mut state.columns {
                     let label = if *is_checked {
                         format!("󰄬  {}", column.to_string())
                     } else {
@@ -229,7 +206,7 @@ impl Menu {
                     if ui.button(label).clicked() {
                         *is_checked = !*is_checked;
                         if let TableColumns::Algorithms(alg) = column {
-                            for file in files.iter_mut() {
+                            for file in state.files.iter_mut() {
                                 if *is_checked {
                                     file.add_digest_for(alg);
                                 } else {
@@ -245,7 +222,7 @@ impl Menu {
                 // TODO Mark identical hashes
             }
 
-            ui.checkbox(&mut self.always_on_top, "Always on Top");
+            ui.checkbox(&mut state.always_on_top, "Always on Top");
         });
     }
 
@@ -260,15 +237,5 @@ impl Menu {
                     .open_url(egui::OpenUrl::new_tab("https://github.com/Astgenne4922/sabikui"));
             }
         });
-    }
-
-    pub fn algorithm_list(&self) -> Vec<String> {
-        let mut active_algorithms = self
-            .algorithms
-            .iter()
-            .filter_map(|(alg, is_checked)| if *is_checked { Some(alg.clone()) } else { None })
-            .collect::<Vec<_>>();
-        active_algorithms.sort();
-        active_algorithms
     }
 }

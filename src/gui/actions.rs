@@ -1,6 +1,9 @@
-use std::sync::mpsc;
+use std::{collections::HashSet, sync::mpsc};
 
-use crate::gui::data::hashed_file::{HashFunction, HashedFile};
+use crate::gui::data::{
+    hashed_file::{HashFunction, HashedFile},
+    state::State,
+};
 
 #[derive(Hash, PartialEq, Eq, Clone)]
 pub enum Action {
@@ -28,12 +31,15 @@ impl ActionHandler {
         Self { message_receiver }
     }
 
-    pub fn handle(&self, files: &mut [HashedFile], algorithms: &[HashFunction]) {
+    pub fn handle(&mut self, state: &mut State) {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
-                Action::Refresh => refresh(files, algorithms),
+                Action::Refresh => {
+                    let algs = &state.algorithm_list();
+                    refresh(&mut state.files, algs);
+                }
                 Action::Paste => explorer_paste(),
-                Action::SelectAll => select_all(),
+                Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
                 Action::DeselectAll => deselect_all(),
                 Action::CopySelected => copy_selected(),
                 Action::SaveSelected => save_selected(),
@@ -61,7 +67,7 @@ fn explorer_paste() {
 }
 
 // TODO select all - CTRL+A
-fn select_all() {
+fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
     println!("SELECT ALL");
 }
 // TODO deselect all - CTRL+D

@@ -1,7 +1,7 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
     body::Body,
-    data::{hashed_file::HashedFile, table_columns::TableColumns},
+    data::{hashed_file::HashedFile, state::State},
     menu::Menu,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
@@ -19,16 +19,15 @@ pub fn run() {
 }
 
 struct Sabikui {
-    files: Vec<HashedFile>,
+    state: State,
     menu: Menu,
     body: Body,
-    font: egui::FontDefinitions,
     action_handler: ActionHandler,
     message_sender: mpsc::Sender<Action>,
 }
 
 impl Sabikui {
-    pub fn new(_cc: &CreationContext<'_>) -> Self {
+    pub fn new(cc: &CreationContext<'_>) -> Self {
         let mut fonts = egui::FontDefinitions::default();
 
         fonts.font_data.insert(
@@ -50,14 +49,15 @@ impl Sabikui {
             .unwrap()
             .push("jet_brains_mono_nerd".to_owned());
 
+        cc.egui_ctx.set_fonts(fonts);
+
         let (sx, rx) = mpsc::channel();
 
         Self {
-            files: Vec::default(),
+            state: State::new(),
             menu: Menu::new(sx.clone()),
             body: Body::new(sx.clone()),
             action_handler: ActionHandler::new(rx),
-            font: fonts,
             message_sender: sx,
         }
     }
@@ -65,24 +65,14 @@ impl Sabikui {
 
 impl App for Sabikui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.set_fonts(self.font.clone());
-
-        self.menu.show(ctx, &mut self.files);
-        let active_algorithms = self.menu.algorithm_list();
-        let cols = self
-            .menu
-            .columns
-            .iter()
-            .filter_map(|(col, is_active)| if *is_active { Some(col.clone()) } else { None })
-            .collect::<Vec<_>>();
-
-        self.body.show(ctx, &active_algorithms, &self.files, &cols);
+        self.menu.show(ctx, &mut self.state);
+        self.body.show(ctx, &mut self.state);
 
         ctx.input_mut(|i| {
             if !i.raw.dropped_files.is_empty() {
                 for file in &i.raw.dropped_files {
                     let path = file.path.as_ref().unwrap();
-                    self.hash_path(&active_algorithms, path);
+                    self.hash_path(path);
                 }
             }
 
@@ -121,22 +111,24 @@ impl App for Sabikui {
             }
         });
 
-        self.action_handler.handle(&mut self.files, &active_algorithms);
+        self.action_handler.handle(&mut self.state);
     }
 }
 
 impl Sabikui {
-    fn hash_path(&mut self, algorithms: &[String], path: &Path) {
+    fn hash_path(&mut self, path: &Path) {
         if path.is_dir() {
             for entry in path.read_dir().unwrap().flatten() {
-                self.hash_path(algorithms, &entry.path());
+                self.hash_path(&entry.path());
             }
         } else {
-            if self.files.iter().any(|f| f.path == *path) {
+            if self.state.files.iter().any(|f| f.path == *path) {
                 return;
             }
 
-            self.files.push(HashedFile::new(path, algorithms));
+            self.state
+                .files
+                .push(HashedFile::new(path, &self.state.algorithm_list()));
         }
     }
 }
