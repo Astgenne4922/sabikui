@@ -95,7 +95,7 @@ impl App for Sabikui {
                 self.message_sender.send(Action::ClearAll).unwrap();
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F2)) {
-                self.message_sender.send(Action::AddFile).unwrap();
+                self.message_sender.send(Action::AddFiles(None)).unwrap();
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F3)) {
                 self.message_sender.send(Action::AddFolder).unwrap();

@@ -8,7 +8,7 @@ use std::os::unix::fs::MetadataExt;
 #[cfg(target_os = "windows")]
 use std::os::windows::fs::MetadataExt;
 
-use crate::algorithms::{self, many_hash_one_file};
+use crate::algorithms::{many_hash_one_file, many_hashes_many_files, one_hash_one_file};
 
 pub type HashFunction = String;
 pub type Digest = String;
@@ -35,6 +35,26 @@ impl HashedFile {
             .collect::<HashMap<_, _>>();
 
         new
+    }
+
+    pub fn build_vec(paths: &[PathBuf], algorithms: &[HashFunction]) -> Vec<Self> {
+        let digests = many_hashes_many_files(algorithms, paths);
+
+        paths
+            .iter()
+            .enumerate()
+            .map(|(i, file)| {
+                let digests = &digests.iter().map(|alg| alg[i].clone()).collect::<Vec<_>>();
+                Self {
+                    path: file.to_path_buf(),
+                    digests: algorithms
+                        .iter()
+                        .zip(digests)
+                        .map(|(h, d)| (h.to_owned(), d.to_owned()))
+                        .collect(),
+                }
+            })
+            .collect()
     }
 
     pub fn file_name(&self) -> String {
@@ -64,10 +84,8 @@ impl HashedFile {
     }
 
     pub fn add_digest_for(&mut self, algorithm: &HashFunction) {
-        self.digests.insert(
-            algorithm.to_string(),
-            algorithms::one_hash_one_file(algorithm, &self.path),
-        );
+        self.digests
+            .insert(algorithm.to_string(), one_hash_one_file(algorithm, &self.path));
     }
 
     pub fn remove_digest(&mut self, algorithm: &HashFunction) {

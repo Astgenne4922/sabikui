@@ -19,7 +19,7 @@ pub enum Action {
     SaveSelected,
     ClearSelected,
     ClearAll,
-    AddFile,
+    AddFiles(Option<Vec<PathBuf>>),
     AddFolder,
     AddWildcard,
     CopyHash(String),
@@ -51,6 +51,10 @@ impl ActionHandler {
                     clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected)
                 }
                 Action::ClearAll => clear_all(&mut state.files, &mut state.selected_rows, &mut state.last_selected),
+                Action::AddFiles(new_files) => {
+                    let alg_list = state.algorithm_list();
+                    add_files(new_files, &mut state.files, &alg_list);
+                }
                 Action::AddWildcard => add_wildcard(),
                 Action::CopyHash(_) => copy_hash(),
                 Action::SortBy(_) => sort_by(),
@@ -106,7 +110,16 @@ fn clear_all(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, la
     *last_selected = 0;
 }
 
+fn add_files(new_files: Option<Vec<PathBuf>>, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+    let new_files = new_files.or_else(|| rfd::FileDialog::new().pick_files());
+
+    if let Some(new_files) = new_files {
+        let new_files = new_files.into_iter().filter(|f| f.is_file()).collect::<Vec<_>>();
+        files.extend(HashedFile::build_vec(&new_files, algorithms));
+    }
 }
+
+
 // TODO add wildcard - F4
 fn add_wildcard() {
     println!("ADD WILDCARD");

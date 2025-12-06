@@ -56,7 +56,7 @@ impl Menu {
             ui.separator();
 
             if ui.button("").on_hover_text("Add File").clicked() {
-                self.message_sender.send(Action::AddFile).unwrap();
+                self.message_sender.send(Action::AddFiles(None)).unwrap();
             }
 
             if ui.button("󰉗").on_hover_text("Add Folder").clicked() {
@@ -86,7 +86,7 @@ impl Menu {
     fn file_menu(&mut self, ui: &mut egui::Ui) {
         ui.menu_button("File", |ui| {
             if ui.button("Add File                F2").clicked() {
-                self.message_sender.send(Action::AddFile).unwrap();
+                self.message_sender.send(Action::AddFiles(None)).unwrap();
             }
 
             if ui.button("Add Folder              F3").clicked() {
