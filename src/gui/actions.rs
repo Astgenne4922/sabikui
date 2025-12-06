@@ -39,8 +39,8 @@ impl ActionHandler {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
                 Action::Refresh => {
-                    let algs = &state.algorithm_list();
-                    refresh(&mut state.files, algs);
+                    let alg_list = state.algorithm_list();
+                    refresh(&mut state.files, &alg_list)
                 }
                 Action::Paste => explorer_paste(),
                 Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
@@ -67,11 +67,12 @@ impl ActionHandler {
     }
 }
 
-// TODO Refresh - F5
-fn refresh(files: &mut [HashedFile], algorithms: &[HashFunction]) {
-    for file in files {
-        *file = HashedFile::new(&file.path, algorithms);
-    }
+fn refresh(files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+    *files = HashedFile::build_vec(
+        &get_files(&files.iter().map(|f| f.path.clone()).collect::<Vec<_>>()),
+        algorithms,
+    );
+}
 
 // TODO Explorer paste - CTRL+V
 fn explorer_paste() {
