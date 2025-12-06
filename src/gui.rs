@@ -1,12 +1,12 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
     body::Body,
-    data::{hashed_file::HashedFile, state::State},
+    data::state::State,
     menu::Menu,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
 use egui::{Key, KeyboardShortcut, Modifiers};
-use std::{path::Path, sync::mpsc};
+use std::sync::mpsc;
 
 mod actions;
 mod body;
@@ -70,10 +70,15 @@ impl App for Sabikui {
 
         ctx.input_mut(|i| {
             if !i.raw.dropped_files.is_empty() {
-                for file in &i.raw.dropped_files {
-                    let path = file.path.as_ref().unwrap();
-                    self.hash_path(path);
-                }
+                self.message_sender
+                    .send(Action::AddFolders(Some(
+                        i.raw
+                            .dropped_files
+                            .iter()
+                            .map(|f| f.path.clone().unwrap())
+                            .collect::<Vec<_>>(),
+                    )))
+                    .unwrap();
             }
 
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::A)) {
@@ -112,23 +117,5 @@ impl App for Sabikui {
         });
 
         self.action_handler.handle(&mut self.state);
-    }
-}
-
-impl Sabikui {
-    fn hash_path(&mut self, path: &Path) {
-        if path.is_dir() {
-            for entry in path.read_dir().unwrap().flatten() {
-                self.hash_path(&entry.path());
-            }
-        } else {
-            if self.state.files.iter().any(|f| f.path == *path) {
-                return;
-            }
-
-            self.state
-                .files
-                .push(HashedFile::new(path, &self.state.algorithm_list()));
-        }
     }
 }
