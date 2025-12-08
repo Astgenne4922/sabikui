@@ -24,7 +24,7 @@ pub enum Action {
     AddFiles(Option<Vec<PathBuf>>),
     AddFolders(Option<Vec<PathBuf>>),
     AddWildcard,
-    CopyHash(String),
+    CopyHash(HashFunction),
     SortBy(String),
 }
 
@@ -83,7 +83,9 @@ impl ActionHandler {
                     add_folders(folders, &mut state.files, &alg_list);
                 }
                 Action::AddWildcard => add_wildcard(),
-                Action::CopyHash(_) => copy_hash(),
+                Action::CopyHash(alg) => {
+                    state.to_copy = Some(copy_hash(alg, &mut state.files, &mut state.selected_rows))
+                }
                 Action::SortBy(_) => sort_by(),
             }
         }
@@ -184,9 +186,17 @@ fn add_wildcard() {
     println!("ADD WILDCARD");
 }
 
-// TODO Copy [ALG]
-fn copy_hash() {
-    println!("COPY HASH");
+fn copy_hash(alg: HashFunction, files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>) -> String {
+    files
+        .iter()
+        .enumerate()
+        .filter_map(|(i, file)| {
+            selected_rows
+                .contains(&i)
+                .then_some(file.get_digest(&alg).unwrap().to_owned())
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 // TODO Sort By
