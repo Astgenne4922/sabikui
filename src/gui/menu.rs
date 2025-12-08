@@ -205,9 +205,9 @@ impl Menu {
             ui.menu_button("Choose Columns", |ui| {
                 for (column, is_checked) in &mut state.columns {
                     let label = if *is_checked {
-                        format!("󰄬  {}", column.to_string())
+                        format!("󰄬  {column}")
                     } else {
-                        format!("   {}", column.to_string())
+                        format!("   {column}")
                     };
                     if ui.button(label).clicked() {
                         *is_checked = !*is_checked;

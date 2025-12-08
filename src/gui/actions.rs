@@ -120,28 +120,20 @@ fn deselect_all(selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
 }
 
 fn copy_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, columns: &[TableColumns]) -> String {
-    let mut output = String::default();
-
-    for i in selected_rows.iter() {
-        let file = &files[*i];
-
-        let line = columns
-            .iter()
-            .map(|column| match column {
-                TableColumns::Path => file.path.display().to_string(),
-                TableColumns::FileName => file.file_name(),
-                TableColumns::Algorithms(alg) => file.get_digest(alg).unwrap().to_owned(),
-                TableColumns::LastEdit => file.last_edit(),
-                TableColumns::FileSize => file.size().to_string(),
-                TableColumns::Extension => file.extension(),
-            })
-            .collect::<Vec<_>>()
-            .join("\t");
-
-        output += &(line + "\n");
-    }
-
-    output
+    files
+        .iter()
+        .enumerate()
+        .filter_map(|(i, file)| {
+            selected_rows.contains(&i).then_some(
+                columns
+                    .iter()
+                    .map(|column| column.from_file(&file))
+                    .collect::<Vec<_>>()
+                    .join("\t"),
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn save_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, columns: &[TableColumns]) {

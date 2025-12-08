@@ -2,10 +2,7 @@ use egui::{Align, CentralPanel, Event, Layout, Response, ScrollArea, Sense, Text
 use egui_extras::{Column, TableBuilder};
 use std::sync::mpsc;
 
-use crate::gui::{
-    actions::Action,
-    data::{state::State, table_columns::TableColumns},
-};
+use crate::gui::{actions::Action, data::state::State};
 
 pub struct Body {
     message_sender: mpsc::Sender<Action>,
@@ -76,15 +73,8 @@ impl Body {
                     for col in &columns {
                         row.col(|ui| {
                             ui.style_mut().interaction.selectable_labels = false;
-                            let text = match col {
-                                TableColumns::Path => file.path.display().to_string(),
-                                TableColumns::FileName => file.file_name(),
-                                TableColumns::Algorithms(alg) => file.get_digest(&alg).unwrap().to_owned(),
-                                TableColumns::LastEdit => file.last_edit(),
-                                TableColumns::FileSize => file.size().to_string(),
-                                TableColumns::Extension => file.extension(),
-                            };
-                            ui.label(format!("{}", text));
+                            let text = col.from_file(&file);
+                            ui.label(format!("{text}"));
                         });
                     }
 
