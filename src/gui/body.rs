@@ -9,14 +9,14 @@ pub struct Body {
 }
 
 impl Body {
-    pub fn new(message_sender: mpsc::Sender<Action>) -> Self {
+    pub const fn new(message_sender: mpsc::Sender<Action>) -> Self {
         Self { message_sender }
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, state: &mut State) {
+    pub fn show(&self, ctx: &egui::Context, state: &mut State) {
         CentralPanel::default().show(ctx, |ui| {
             let response = ui.interact(ui.min_rect(), ui.unique_id(), Sense::click());
-            self.context_menu(response, state);
+            self.context_menu(&response, state);
 
             ScrollArea::horizontal()
                 .stick_to_bottom(true)
@@ -32,7 +32,7 @@ impl Body {
         });
     }
 
-    fn ui(&mut self, ui: &mut egui::Ui, state: &mut State) {
+    fn ui(&self, ui: &mut egui::Ui, state: &mut State) {
         let text_height = TextStyle::Body
             .resolve(ui.style())
             .size
@@ -73,12 +73,12 @@ impl Body {
                     for col in &columns {
                         row.col(|ui| {
                             ui.style_mut().interaction.selectable_labels = false;
-                            let text = col.from_file(&file);
-                            ui.label(format!("{text}"));
+                            let text = file.get_from_column(col);
+                            ui.label(text);
                         });
                     }
 
-                    self.context_menu(row.response(), state);
+                    self.context_menu(&row.response(), state);
 
                     if row.response().clicked() {
                         let index = row.index();
@@ -111,7 +111,7 @@ impl Body {
             });
     }
 
-    fn context_menu(&self, response: Response, state: &mut State) {
+    fn context_menu(&self, response: &Response, state: &State) {
         response.context_menu(|ui| {
             ui.add_enabled_ui(!state.selected_rows.is_empty(), |ui| {
                 if ui.button("Save Selected     CTRL + S").clicked() {

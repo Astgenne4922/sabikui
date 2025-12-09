@@ -38,9 +38,9 @@ impl State {
                 .map(|h| (h.to_owned(), true))
                 .collect::<HashMap<_, _>>(),
             always_on_top: false,
-            selected_rows: Default::default(),
+            selected_rows: HashSet::default(),
             last_selected: Default::default(),
-            to_copy: Default::default(),
+            to_copy: Option::default(),
         }
     }
 

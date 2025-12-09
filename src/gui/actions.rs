@@ -33,37 +33,37 @@ pub struct ActionHandler {
 }
 
 impl ActionHandler {
-    pub fn new(message_receiver: mpsc::Receiver<Action>) -> Self {
+    pub const fn new(message_receiver: mpsc::Receiver<Action>) -> Self {
         Self { message_receiver }
     }
 
-    pub fn handle(&mut self, state: &mut State) {
+    pub fn handle(&self, state: &mut State) {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
                 Action::Refresh => {
                     let alg_list = state.algorithm_list();
-                    refresh(&mut state.files, &alg_list)
+                    refresh(&mut state.files, &alg_list);
                 }
                 Action::Paste(to_paste) => {
                     let alg_list = state.algorithm_list();
-                    explorer_paste(to_paste, &mut state.files, &alg_list)
+                    explorer_paste(&to_paste, &mut state.files, &alg_list);
                 }
                 Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
                 Action::DeselectAll => deselect_all(&mut state.selected_rows, &mut state.last_selected),
                 Action::CopySelected => {
                     state.to_copy = Some(copy_selected(
-                        &mut state.files,
-                        &mut state.selected_rows,
+                        &state.files,
+                        &state.selected_rows,
                         &state
                             .columns
                             .iter()
                             .filter_map(|(col, is_checked)| if *is_checked { Some(col.clone()) } else { None })
                             .collect::<Vec<_>>(),
-                    ))
+                    ));
                 }
                 Action::SaveSelected => save_selected(
-                    &mut state.files,
-                    &mut state.selected_rows,
+                    &state.files,
+                    &state.selected_rows,
                     &state
                         .columns
                         .iter()
@@ -71,7 +71,7 @@ impl ActionHandler {
                         .collect::<Vec<_>>(),
                 ),
                 Action::ClearSelected => {
-                    clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected)
+                    clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected);
                 }
                 Action::ClearAll => clear_all(&mut state.files, &mut state.selected_rows, &mut state.last_selected),
                 Action::AddFiles(new_files) => {
@@ -84,7 +84,7 @@ impl ActionHandler {
                 }
                 Action::AddWildcard => add_wildcard(),
                 Action::CopyHash(alg) => {
-                    state.to_copy = Some(copy_hash(alg, &mut state.files, &mut state.selected_rows))
+                    state.to_copy = Some(copy_hash(&alg, &state.files, &state.selected_rows));
                 }
                 Action::SortBy(_) => sort_by(),
             }
@@ -99,7 +99,7 @@ fn refresh(files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
     );
 }
 
-fn explorer_paste(pasted: String, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+fn explorer_paste(pasted: &str, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
     let pasted_lines = pasted
         .lines()
         .filter_map(|path| {
@@ -112,7 +112,7 @@ fn explorer_paste(pasted: String, files: &mut Vec<HashedFile>, algorithms: &[Has
 }
 
 fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    *selected_rows = HashSet::from_iter(0..num_rows);
+    *selected_rows = (0..num_rows).collect::<HashSet<_>>();
     *last_selected = 0;
 }
 
@@ -121,7 +121,7 @@ fn deselect_all(selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
     *last_selected = 0;
 }
 
-fn copy_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, columns: &[TableColumns]) -> String {
+fn copy_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: &[TableColumns]) -> String {
     files
         .iter()
         .enumerate()
@@ -129,7 +129,7 @@ fn copy_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>
             selected_rows.contains(&i).then_some(
                 columns
                     .iter()
-                    .map(|column| column.from_file(&file))
+                    .map(|column| file.get_from_column(column))
                     .collect::<Vec<_>>()
                     .join("\t"),
             )
@@ -138,13 +138,23 @@ fn copy_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>
         .join("\n")
 }
 
-fn save_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, columns: &[TableColumns]) {
+fn save_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: &[TableColumns]) {
     if let Some(path) = &mut rfd::FileDialog::new().add_filter("csv", &["csv"]).save_file() {
         path.set_extension("csv");
-        let mut to_save = columns.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(",");
-        to_save += &format!("\n{}", copy_selected(files, selected_rows, columns).replace('\t', ","));
+        let to_save = columns
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(",");
 
-        fs::write(path, to_save).unwrap();
+        fs::write(
+            path,
+            format!(
+                "{to_save}\n{}",
+                copy_selected(files, selected_rows, columns).replace('\t', ",")
+            ),
+        )
+        .unwrap();
     }
 }
 
@@ -152,7 +162,7 @@ fn clear_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize
     *files = files
         .iter()
         .enumerate()
-        .filter_map(|(i, file)| (!selected_rows.contains(&i)).then(|| file.clone()))
+        .filter_map(|(i, file)| (!selected_rows.contains(&i)).then_some(file.clone()))
         .collect::<Vec<_>>();
     selected_rows.clear();
     *last_selected = 0;
@@ -186,14 +196,14 @@ fn add_wildcard() {
     println!("ADD WILDCARD");
 }
 
-fn copy_hash(alg: HashFunction, files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>) -> String {
+fn copy_hash(alg: &HashFunction, files: &[HashedFile], selected_rows: &HashSet<usize>) -> String {
     files
         .iter()
         .enumerate()
         .filter_map(|(i, file)| {
             selected_rows
                 .contains(&i)
-                .then_some(file.get_digest(&alg).unwrap().to_owned())
+                .then_some(file.get_digest(alg).unwrap().to_owned())
         })
         .collect::<Vec<_>>()
         .join("\n")

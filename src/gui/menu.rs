@@ -10,11 +10,11 @@ pub struct Menu {
 }
 
 impl Menu {
-    pub fn new(message_sender: mpsc::Sender<Action>) -> Self {
+    pub const fn new(message_sender: mpsc::Sender<Action>) -> Self {
         Self { message_sender }
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, state: &mut State) {
+    pub fn show(&self, ctx: &egui::Context, state: &mut State) {
         if state.always_on_top {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
         } else {
@@ -24,24 +24,24 @@ impl Menu {
         TopBottomPanel::top("top_panel").show(ctx, |ui| self.ui(ui, state));
     }
 
-    fn ui(&mut self, ui: &mut egui::Ui, state: &mut State) {
+    fn ui(&self, ui: &mut egui::Ui, state: &mut State) {
         ui.vertical(|ui| {
             self.menu_bar(ui, state);
             self.tool_bar(ui);
         });
     }
 
-    fn menu_bar(&mut self, ui: &mut egui::Ui, state: &mut State) {
+    fn menu_bar(&self, ui: &mut egui::Ui, state: &mut State) {
         MenuBar::new().ui(ui, |ui| {
             self.file_menu(ui);
             self.edit_menu(ui, state);
             self.view_menu(ui, state);
-            self.options_menu(ui, state);
-            self.help_menu(ui);
+            Self::options_menu(ui, state);
+            Self::help_menu(ui);
         });
     }
 
-    fn tool_bar(&mut self, ui: &mut egui::Ui) {
+    fn tool_bar(&self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.style_mut().override_font_id = Some(egui::FontId::proportional(24.0));
 
@@ -83,7 +83,7 @@ impl Menu {
         });
     }
 
-    fn file_menu(&mut self, ui: &mut egui::Ui) {
+    fn file_menu(&self, ui: &mut egui::Ui) {
         ui.menu_button("File", |ui| {
             if ui.button("Add File                F2").clicked() {
                 self.message_sender.send(Action::AddFiles(None)).unwrap();
@@ -121,7 +121,7 @@ impl Menu {
         });
     }
 
-    fn edit_menu(&mut self, ui: &mut egui::Ui, state: &mut State) {
+    fn edit_menu(&self, ui: &mut egui::Ui, state: &State) {
         ui.menu_button("Edit", |ui| {
             if ui.button("Copy Selected     CTRL + C").clicked() {
                 self.message_sender.send(Action::CopySelected).unwrap();
@@ -140,7 +140,7 @@ impl Menu {
             ui.separator();
 
             ui.menu_button("Copy", |ui| {
-                for (alg, _) in &mut state.algorithms {
+                for alg in state.algorithms.keys() {
                     if ui.button(alg.to_ascii_uppercase()).clicked() {
                         self.message_sender.send(Action::CopyHash(alg.to_owned())).unwrap();
                     }
@@ -159,7 +159,7 @@ impl Menu {
         });
     }
 
-    fn view_menu(&mut self, ui: &mut egui::Ui, state: &mut State) {
+    fn view_menu(&self, ui: &mut egui::Ui, state: &State) {
         ui.menu_button("View", |ui| {
             ui.menu_button("Sort By", |ui| {
                 if ui.button("Filename").clicked() {
@@ -167,7 +167,7 @@ impl Menu {
                 }
 
                 ui.menu_button("Algorithm", |ui| {
-                    for (alg, _) in &state.algorithms {
+                    for alg in state.algorithms.keys() {
                         if ui.button(alg.to_ascii_uppercase()).clicked() {
                             self.message_sender.send(Action::SortBy(alg.to_owned())).unwrap();
                         }
@@ -199,7 +199,7 @@ impl Menu {
         });
     }
 
-    fn options_menu(&mut self, ui: &mut egui::Ui, state: &mut State) {
+    fn options_menu(ui: &mut egui::Ui, state: &mut State) {
         ui.menu_button("Options", |ui| {
             // TODO Options Columns
             ui.menu_button("Choose Columns", |ui| {
@@ -212,7 +212,7 @@ impl Menu {
                     if ui.button(label).clicked() {
                         *is_checked = !*is_checked;
                         if let TableColumns::Algorithms(alg) = column {
-                            for file in state.files.iter_mut() {
+                            for file in &mut state.files {
                                 if *is_checked {
                                     file.add_digest_for(alg);
                                 } else {
@@ -232,7 +232,7 @@ impl Menu {
         });
     }
 
-    fn help_menu(&mut self, ui: &mut egui::Ui) {
+    fn help_menu(ui: &mut egui::Ui) {
         ui.menu_button("Help", |ui| {
             if ui.button("About").clicked() {
                 // TODO About

@@ -10,7 +10,10 @@ use std::os::windows::fs::MetadataExt;
 
 use chrono::{DateTime, Utc};
 
-use crate::algorithms::{many_hash_one_file, many_hashes_many_files, one_hash_one_file};
+use crate::{
+    algorithms::{many_hash_one_file, many_hashes_many_files, one_hash_one_file},
+    gui::data::table_columns::TableColumns,
+};
 
 pub type HashFunction = String;
 pub type Digest = String;
@@ -48,7 +51,7 @@ impl HashedFile {
             .map(|(i, file)| {
                 let digests = &digests.iter().map(|alg| alg[i].clone()).collect::<Vec<_>>();
                 Self {
-                    path: file.to_path_buf(),
+                    path: file.clone(),
                     digests: algorithms
                         .iter()
                         .zip(digests)
@@ -88,10 +91,21 @@ impl HashedFile {
 
     pub fn add_digest_for(&mut self, algorithm: &HashFunction) {
         self.digests
-            .insert(algorithm.to_string(), one_hash_one_file(algorithm, &self.path));
+            .insert(algorithm.clone(), one_hash_one_file(algorithm, &self.path));
     }
 
     pub fn remove_digest(&mut self, algorithm: &HashFunction) {
         self.digests.remove(algorithm);
+    }
+
+    pub fn get_from_column(&self, column: &TableColumns) -> String {
+        match column {
+            TableColumns::Path => self.path.display().to_string(),
+            TableColumns::FileName => self.file_name(),
+            TableColumns::Algorithms(alg) => self.get_digest(alg).unwrap().to_owned(),
+            TableColumns::LastEdit => self.last_edit(),
+            TableColumns::FileSize => self.size().to_string(),
+            TableColumns::Extension => self.extension(),
+        }
     }
 }
