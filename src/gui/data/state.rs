@@ -20,12 +20,9 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
+        let hashes = algorithms::get_hash_functions();
         let mut cols = vec![(TableColumns::Path, true), (TableColumns::FileName, true)];
-        cols.extend(
-            algorithms::get_hash_functions()
-                .iter()
-                .map(|h| (TableColumns::Algorithms(h.to_owned()), true)),
-        );
+        cols.extend(hashes.iter().map(|h| (TableColumns::Algorithms(h.to_owned()), true)));
         cols.push((TableColumns::FileSize, true));
         cols.push((TableColumns::LastEdit, true));
         cols.push((TableColumns::Extension, true));
@@ -33,10 +30,7 @@ impl State {
         Self {
             files: Vec::default(),
             columns: cols,
-            algorithms: algorithms::get_hash_functions()
-                .iter()
-                .map(|h| (h.to_owned(), true))
-                .collect::<HashMap<_, _>>(),
+            algorithms: hashes.iter().map(|h| (h.to_owned(), true)).collect(),
             always_on_top: false,
             selected_rows: HashSet::default(),
             last_selected: Default::default(),
@@ -44,12 +38,19 @@ impl State {
         }
     }
 
+    pub fn active_columns(&self) -> Vec<TableColumns> {
+        self.columns
+            .iter()
+            .filter_map(|(col, is_checked)| is_checked.then_some(col.clone()))
+            .collect::<Vec<_>>()
+    }
+
     pub fn algorithm_list(&self) -> Vec<HashFunction> {
-        let mut active_algorithms = self
+        let mut active_algorithms: Vec<String> = self
             .algorithms
             .iter()
-            .filter_map(|(alg, is_checked)| if *is_checked { Some(alg.clone()) } else { None })
-            .collect::<Vec<_>>();
+            .filter_map(|(alg, is_checked)| is_checked.then_some(alg.to_owned()))
+            .collect();
         active_algorithms.sort();
         active_algorithms
     }

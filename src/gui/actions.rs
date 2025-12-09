@@ -1,7 +1,7 @@
 use std::{
     collections::{HashSet, VecDeque},
     fs,
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::mpsc,
 };
 
@@ -39,13 +39,13 @@ impl ActionHandler {
 
     pub fn handle(&self, state: &mut State) {
         while let Ok(action) = self.message_receiver.try_recv() {
+            let alg_list = state.algorithm_list();
+
             match action {
                 Action::Refresh => {
-                    let alg_list = state.algorithm_list();
                     refresh(&mut state.files, &alg_list);
                 }
                 Action::Paste(to_paste) => {
-                    let alg_list = state.algorithm_list();
                     explorer_paste(&to_paste, &mut state.files, &alg_list);
                 }
                 Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
@@ -54,32 +54,18 @@ impl ActionHandler {
                     state.to_copy = Some(copy_selected(
                         &state.files,
                         &state.selected_rows,
-                        &state
-                            .columns
-                            .iter()
-                            .filter_map(|(col, is_checked)| if *is_checked { Some(col.clone()) } else { None })
-                            .collect::<Vec<_>>(),
+                        &state.active_columns(),
                     ));
                 }
-                Action::SaveSelected => save_selected(
-                    &state.files,
-                    &state.selected_rows,
-                    &state
-                        .columns
-                        .iter()
-                        .filter_map(|(col, is_checked)| if *is_checked { Some(col.clone()) } else { None })
-                        .collect::<Vec<_>>(),
-                ),
+                Action::SaveSelected => save_selected(&state.files, &state.selected_rows, &state.active_columns()),
                 Action::ClearSelected => {
                     clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected);
                 }
                 Action::ClearAll => clear_all(&mut state.files, &mut state.selected_rows, &mut state.last_selected),
                 Action::AddFiles(new_files) => {
-                    let alg_list = state.algorithm_list();
                     add_files(new_files, &mut state.files, &alg_list);
                 }
                 Action::AddFolders(folders) => {
-                    let alg_list = state.algorithm_list();
                     add_folders(folders, &mut state.files, &alg_list);
                 }
                 Action::AddWildcard => add_wildcard(),
@@ -94,25 +80,18 @@ impl ActionHandler {
 
 fn refresh(files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
     *files = HashedFile::build_vec(
-        &get_files(&files.iter().map(|f| f.path.clone()).collect::<Vec<_>>()),
+        &get_files(&files.iter().map(HashedFile::get_path).collect::<Vec<_>>()),
         algorithms,
     );
 }
 
 fn explorer_paste(pasted: &str, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
-    let pasted_lines = pasted
-        .lines()
-        .filter_map(|path| {
-            let path = Path::new(path);
-            if path.exists() { Some(path.to_path_buf()) } else { None }
-        })
-        .collect::<Vec<_>>();
-
+    let pasted_lines = pasted.lines().map(PathBuf::from).filter(|path| path.exists()).collect();
     add_folders(Some(pasted_lines), files, algorithms);
 }
 
 fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    *selected_rows = (0..num_rows).collect::<HashSet<_>>();
+    *selected_rows = (0..num_rows).collect();
     *last_selected = 0;
 }
 
@@ -125,14 +104,13 @@ fn copy_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: 
     files
         .iter()
         .enumerate()
-        .filter_map(|(i, file)| {
-            selected_rows.contains(&i).then_some(
-                columns
-                    .iter()
-                    .map(|column| file.get_from_column(column))
-                    .collect::<Vec<_>>()
-                    .join("\t"),
-            )
+        .filter(|&(i, _)| selected_rows.contains(&i))
+        .map(|(_, file)| {
+            columns
+                .iter()
+                .map(|column| file.get_from_column(column))
+                .collect::<Vec<_>>()
+                .join("\t")
         })
         .collect::<Vec<_>>()
         .join("\n")
@@ -143,7 +121,7 @@ fn save_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: 
         path.set_extension("csv");
         let to_save = columns
             .iter()
-            .map(std::string::ToString::to_string)
+            .map(TableColumns::to_string)
             .collect::<Vec<_>>()
             .join(",");
 
@@ -200,11 +178,7 @@ fn copy_hash(alg: &HashFunction, files: &[HashedFile], selected_rows: &HashSet<u
     files
         .iter()
         .enumerate()
-        .filter_map(|(i, file)| {
-            selected_rows
-                .contains(&i)
-                .then_some(file.get_digest(alg).unwrap().to_owned())
-        })
+        .filter_map(|(i, file)| selected_rows.contains(&i).then_some(file.get_digest(alg)))
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -226,9 +200,8 @@ fn get_files(paths: &[PathBuf]) -> Vec<PathBuf> {
             dirs.push_back(path.clone());
         }
 
-        while !dirs.is_empty() {
-            let dir = dirs.pop_front().unwrap();
-
+        while let Some(dir) = dirs.pop_front() {
+            // TODO Handle errors
             for entry in dir.read_dir().unwrap().flatten() {
                 let path = entry.path();
 

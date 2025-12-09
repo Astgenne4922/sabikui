@@ -1,6 +1,10 @@
 use crate::gui::{
     actions::Action,
-    data::{state::State, table_columns::TableColumns},
+    data::{
+        constants::{icons, labels},
+        state::State,
+        table_columns::TableColumns,
+    },
 };
 use egui::{Event, MenuBar, TopBottomPanel};
 use std::sync::mpsc;
@@ -45,93 +49,123 @@ impl Menu {
         ui.horizontal(|ui| {
             ui.style_mut().override_font_id = Some(egui::FontId::proportional(24.0));
 
-            if ui.button("󰆓").on_hover_text("Save Selected").clicked() {
-                self.message_sender.send(Action::SaveSelected).unwrap();
+            let mut events = Vec::new();
+
+            if ui
+                .button(icons::SAVE_SELECTED)
+                .on_hover_text(labels::SAVE_SELECTED)
+                .clicked()
+            {
+                events.push(Action::SaveSelected);
             }
 
-            if ui.button("󰑐").on_hover_text("Refresh").clicked() {
-                self.message_sender.send(Action::Refresh).unwrap();
-            }
-
-            ui.separator();
-
-            if ui.button("").on_hover_text("Add File").clicked() {
-                self.message_sender.send(Action::AddFiles(None)).unwrap();
-            }
-
-            if ui.button("󰉗").on_hover_text("Add Folder").clicked() {
-                self.message_sender.send(Action::AddFolders(None)).unwrap();
-            }
-
-            if ui.button("").on_hover_text("Add by Wildcard").clicked() {
-                self.message_sender.send(Action::AddWildcard).unwrap();
+            if ui.button(icons::REFRESH).on_hover_text(labels::REFRESH).clicked() {
+                events.push(Action::Refresh);
             }
 
             ui.separator();
 
-            if ui.button("󰾂").on_hover_text("Select All").clicked() {
-                self.message_sender.send(Action::SelectAll).unwrap();
+            if ui.button(icons::ADD_FILE).on_hover_text(labels::ADD_FILE).clicked() {
+                events.push(Action::AddFiles(None));
             }
 
-            if ui.button("󰆏").on_hover_text("Copy Selected").clicked() {
-                self.message_sender.send(Action::ClearSelected).unwrap();
+            if ui.button(icons::ADD_FOLDER).on_hover_text(labels::ADD_FOLDER).clicked() {
+                events.push(Action::AddFolders(None));
             }
 
-            if ui.button("󰗨").on_hover_text("Clear All").clicked() {
-                self.message_sender.send(Action::ClearAll).unwrap();
+            if ui
+                .button(icons::ADD_WILDCARD)
+                .on_hover_text(labels::ADD_WILDCARD)
+                .clicked()
+            {
+                events.push(Action::AddWildcard);
+            }
+
+            ui.separator();
+
+            if ui.button(icons::SELECT_ALL).on_hover_text(labels::SELECT_ALL).clicked() {
+                events.push(Action::SelectAll);
+            }
+
+            if ui
+                .button(icons::COPY_SELECTED)
+                .on_hover_text(labels::COPY_SELECTED)
+                .clicked()
+            {
+                events.push(Action::ClearSelected);
+            }
+
+            if ui.button(icons::CLEAR_ALL).on_hover_text(labels::CLEAR_ALL).clicked() {
+                events.push(Action::ClearAll);
+            }
+
+            for event in events {
+                self.message_sender
+                    .send(event)
+                    .expect("The receiver should always be available");
             }
         });
     }
 
     fn file_menu(&self, ui: &mut egui::Ui) {
-        ui.menu_button("File", |ui| {
-            if ui.button("Add File                F2").clicked() {
-                self.message_sender.send(Action::AddFiles(None)).unwrap();
+        ui.menu_button(labels::FILE_MENU, |ui| {
+            let mut events = Vec::new();
+
+            if ui.button(labels::ADD_FILE).clicked() {
+                events.push(Action::AddFiles(None));
             }
 
-            if ui.button("Add Folder              F3").clicked() {
-                self.message_sender.send(Action::AddFolders(None)).unwrap();
+            if ui.button(labels::ADD_FOLDER).clicked() {
+                events.push(Action::AddFolders(None));
             }
 
-            if ui.button("Add by Wildcard         F4").clicked() {
-                self.message_sender.send(Action::AddWildcard).unwrap();
-            }
-
-            ui.separator();
-
-            if ui.button("Save Selected     CTRL + S").clicked() {
-                self.message_sender.send(Action::SaveSelected).unwrap();
+            if ui.button(labels::ADD_WILDCARD).clicked() {
+                events.push(Action::AddWildcard);
             }
 
             ui.separator();
 
-            if ui.button("Clear All         CTRL + X").clicked() {
-                self.message_sender.send(Action::ClearAll).unwrap();
-            }
-
-            if ui.button("Clear Selected         Del").clicked() {
-                self.message_sender.send(Action::ClearSelected).unwrap();
+            if ui.button(labels::SAVE_SELECTED).clicked() {
+                events.push(Action::SaveSelected);
             }
 
             ui.separator();
 
-            if ui.button("Exit").clicked() {
+            if ui.button(labels::CLEAR_ALL).clicked() {
+                events.push(Action::ClearAll);
+            }
+
+            if ui.button(labels::CLEAR_SELECTED).clicked() {
+                events.push(Action::ClearSelected);
+            }
+
+            ui.separator();
+
+            if ui.button(labels::EXIT).clicked() {
                 ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+
+            for event in events {
+                self.message_sender
+                    .send(event)
+                    .expect("The receiver should always be available");
             }
         });
     }
 
     fn edit_menu(&self, ui: &mut egui::Ui, state: &State) {
-        ui.menu_button("Edit", |ui| {
-            if ui.button("Copy Selected     CTRL + C").clicked() {
-                self.message_sender.send(Action::CopySelected).unwrap();
+        ui.menu_button(labels::EDIT_MENU, |ui| {
+            let mut events = Vec::new();
+
+            if ui.button(labels::COPY_SELECTED).clicked() {
+                events.push(Action::CopySelected);
             }
 
-            if ui.button("Explorer Paste    CTRL + V").clicked() {
+            if ui.button(labels::EXPLORER_PASTE).clicked() {
                 ui.ctx().input(|i| {
                     for event in &i.events {
                         if let Event::Paste(to_paste) = event {
-                            self.message_sender.send(Action::Paste(to_paste.clone())).unwrap();
+                            events.push(Action::Paste(to_paste.to_owned()));
                         }
                     }
                 });
@@ -139,70 +173,78 @@ impl Menu {
 
             ui.separator();
 
-            ui.menu_button("Copy", |ui| {
-                for alg in state.algorithms.keys() {
+            ui.menu_button(labels::COPY, |ui| {
+                for alg in state.algorithm_list() {
                     if ui.button(alg.to_ascii_uppercase()).clicked() {
-                        self.message_sender.send(Action::CopyHash(alg.to_owned())).unwrap();
+                        events.push(Action::CopyHash(alg));
                     }
                 }
             });
 
             ui.separator();
 
-            if ui.button("Select All        CTRL + A").clicked() {
-                self.message_sender.send(Action::SelectAll).unwrap();
+            if ui.button(labels::SELECT_ALL).clicked() {
+                events.push(Action::SelectAll);
             }
 
-            if ui.button("Deselect All      CTRL + D").clicked() {
-                self.message_sender.send(Action::DeselectAll).unwrap();
+            if ui.button(labels::DESELECT_ALL).clicked() {
+                events.push(Action::DeselectAll);
+            }
+
+            for event in events {
+                self.message_sender
+                    .send(event)
+                    .expect("The receiver should always be available");
             }
         });
     }
 
     fn view_menu(&self, ui: &mut egui::Ui, state: &State) {
-        ui.menu_button("View", |ui| {
-            ui.menu_button("Sort By", |ui| {
-                if ui.button("Filename").clicked() {
-                    self.message_sender.send(Action::SortBy("Filename".to_owned())).unwrap();
+        ui.menu_button(labels::VIEW_MENU, |ui| {
+            let mut events = Vec::new();
+
+            ui.menu_button(labels::SORT_BY, |ui| {
+                if ui.button(labels::FILENAME).clicked() {
+                    events.push(Action::SortBy("Filename".to_owned()));
                 }
 
-                ui.menu_button("Algorithm", |ui| {
-                    for alg in state.algorithms.keys() {
+                ui.menu_button(labels::ALGORITHM, |ui| {
+                    for alg in state.algorithm_list() {
                         if ui.button(alg.to_ascii_uppercase()).clicked() {
-                            self.message_sender.send(Action::SortBy(alg.to_owned())).unwrap();
+                            events.push(Action::SortBy(alg));
                         }
                     }
                 });
 
-                if ui.button("Edit Time").clicked() {
-                    self.message_sender
-                        .send(Action::SortBy("Edit Time".to_owned()))
-                        .unwrap();
+                if ui.button(labels::EDIT_TIME).clicked() {
+                    events.push(Action::SortBy("Edit Time".to_owned()));
                 }
 
-                if ui.button("File Size").clicked() {
-                    self.message_sender
-                        .send(Action::SortBy("File Size".to_owned()))
-                        .unwrap();
+                if ui.button(labels::FILE_SIZE).clicked() {
+                    events.push(Action::SortBy("File Size".to_owned()));
                 }
 
-                if ui.button("Extension").clicked() {
-                    self.message_sender
-                        .send(Action::SortBy("Extension".to_owned()))
-                        .unwrap();
+                if ui.button(labels::EXTENSION).clicked() {
+                    events.push(Action::SortBy("Extension".to_owned()));
                 }
             });
 
-            if ui.button("Refresh       F5").clicked() {
-                self.message_sender.send(Action::Refresh).unwrap();
+            if ui.button(labels::REFRESH).clicked() {
+                events.push(Action::Refresh);
+            }
+
+            for event in events {
+                self.message_sender
+                    .send(event)
+                    .expect("The receiver should always be available");
             }
         });
     }
 
     fn options_menu(ui: &mut egui::Ui, state: &mut State) {
-        ui.menu_button("Options", |ui| {
+        ui.menu_button(labels::OPTIONS_MENU, |ui| {
             // TODO Options Columns
-            ui.menu_button("Choose Columns", |ui| {
+            ui.menu_button(labels::CHOOSE_COLUMNS, |ui| {
                 for (column, is_checked) in &mut state.columns {
                     let label = if *is_checked {
                         format!("󰄬  {column}")
@@ -224,21 +266,21 @@ impl Menu {
                 }
             });
 
-            if ui.button("Highlight identical Hashes").clicked() {
+            if ui.button(labels::HIGHLIGHT).clicked() {
                 // TODO Mark identical hashes
             }
 
-            ui.checkbox(&mut state.always_on_top, "Always on Top");
+            ui.checkbox(&mut state.always_on_top, labels::ALWAYS_ON_TOP);
         });
     }
 
     fn help_menu(ui: &mut egui::Ui) {
-        ui.menu_button("Help", |ui| {
-            if ui.button("About").clicked() {
+        ui.menu_button(labels::HELP_MENU, |ui| {
+            if ui.button(labels::ABOUT).clicked() {
                 // TODO About
             }
 
-            if ui.button("Github page").clicked() {
+            if ui.button(labels::GITHUB).clicked() {
                 ui.ctx()
                     .open_url(egui::OpenUrl::new_tab("https://github.com/Astgenne4922/sabikui"));
             }

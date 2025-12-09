@@ -69,52 +69,58 @@ impl App for Sabikui {
         self.body.show(ctx, &mut self.state);
 
         ctx.input_mut(|i| {
+            let mut events = Vec::new();
+
             if !i.raw.dropped_files.is_empty() {
-                self.message_sender
-                    .send(Action::AddFolders(Some(
-                        i.raw
-                            .dropped_files
-                            .iter()
-                            .map(|f| f.path.clone().unwrap())
-                            .collect::<Vec<_>>(),
-                    )))
-                    .unwrap();
+                events.push(Action::AddFolders(Some(
+                    i.raw
+                        .dropped_files
+                        .iter()
+                        .map(|f| f.path.clone().unwrap())
+                        .collect::<Vec<_>>(),
+                )));
             }
 
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::A)) {
-                self.message_sender.send(Action::SelectAll).unwrap();
+                events.push(Action::SelectAll);
             }
             if i.events.iter().any(|ev| matches!(ev, egui::Event::Copy)) {
-                self.message_sender.send(Action::CopySelected).unwrap();
+                events.push(Action::CopySelected);
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::D)) {
-                self.message_sender.send(Action::DeselectAll).unwrap();
+                events.push(Action::DeselectAll);
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::S)) {
-                self.message_sender.send(Action::SaveSelected).unwrap();
+                events.push(Action::SaveSelected);
             }
             for event in &i.events {
                 if let Event::Paste(to_paste) = event {
-                    self.message_sender.send(Action::Paste(to_paste.clone())).unwrap();
+                    events.push(Action::Paste(to_paste.clone()));
                 }
             }
             if i.events.iter().any(|ev| matches!(ev, egui::Event::Cut)) {
-                self.message_sender.send(Action::ClearAll).unwrap();
+                events.push(Action::ClearAll);
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F2)) {
-                self.message_sender.send(Action::AddFiles(None)).unwrap();
+                events.push(Action::AddFiles(None));
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F3)) {
-                self.message_sender.send(Action::AddFolders(None)).unwrap();
+                events.push(Action::AddFolders(None));
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F4)) {
-                self.message_sender.send(Action::AddWildcard).unwrap();
+                events.push(Action::AddWildcard);
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F5)) {
-                self.message_sender.send(Action::Refresh).unwrap();
+                events.push(Action::Refresh);
             }
             if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::Delete)) {
-                self.message_sender.send(Action::ClearSelected).unwrap();
+                events.push(Action::ClearSelected);
+            }
+
+            for event in events {
+                self.message_sender
+                    .send(event)
+                    .expect("The receiver should always be available");
             }
         });
 

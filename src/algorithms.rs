@@ -6,8 +6,16 @@ use std::{
 
 pub fn get_hash_functions() -> Vec<String> {
     fs::read_dir("./hash_functions")
+        // TODO Handle errors
         .unwrap()
-        .map(|e| e.unwrap().path().file_stem().unwrap().to_str().unwrap().to_owned())
+        .flatten()
+        .map(|e| {
+            e.path()
+                .file_stem()
+                .expect("There should always be a file name")
+                .to_string_lossy()
+                .to_string()
+        })
         .collect()
 }
 
@@ -15,16 +23,18 @@ pub fn one_hash_one_file(function: &str, file: &Path) -> String {
     let hash = Command::new(format!("./hash_functions/{function}"))
         .arg(file)
         .output()
+        // TODO Handle errors
         .unwrap();
-    String::from_utf8(hash.stdout).unwrap()
+    String::from_utf8(hash.stdout).expect("Output from the executables should always be valid")
 }
 
 pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
     let hash = Command::new(format!("./hash_functions/{function}"))
         .args(files)
         .output()
+        // TODO Handle errors
         .unwrap();
-    let binding = String::from_utf8(hash.stdout).unwrap();
+    let binding = String::from_utf8(hash.stdout).expect("Output from the executables should always be valid");
     binding.lines().map(String::from).collect()
 }
 

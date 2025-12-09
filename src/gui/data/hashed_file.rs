@@ -20,11 +20,12 @@ pub type Digest = String;
 
 #[derive(Default, Clone)]
 pub struct HashedFile {
-    pub path: PathBuf,
+    path: PathBuf,
     digests: HashMap<HashFunction, Digest>,
 }
 
 impl HashedFile {
+    #[allow(unused)]
     pub fn new(path: &Path, algorithms: &[HashFunction]) -> Self {
         let mut new = Self {
             path: path.to_path_buf(),
@@ -33,11 +34,7 @@ impl HashedFile {
 
         let hashes = many_hash_one_file(algorithms, path);
 
-        new.digests = algorithms
-            .iter()
-            .map(std::string::ToString::to_string)
-            .zip(hashes)
-            .collect::<HashMap<_, _>>();
+        new.digests = algorithms.iter().map(String::to_string).zip(hashes).collect();
 
         new
     }
@@ -49,44 +46,65 @@ impl HashedFile {
             .iter()
             .enumerate()
             .map(|(i, file)| {
-                let digests = &digests.iter().map(|alg| alg[i].clone()).collect::<Vec<_>>();
+                let digests = digests.iter().map(|alg| alg[i].clone());
                 Self {
                     path: file.clone(),
-                    digests: algorithms
-                        .iter()
-                        .zip(digests)
-                        .map(|(h, d)| (h.to_owned(), d.to_owned()))
-                        .collect(),
+                    digests: algorithms.iter().map(String::to_string).zip(digests).collect(),
                 }
             })
             .collect()
     }
 
+    pub fn get_path(&self) -> PathBuf {
+        self.path.clone()
+    }
+
     pub fn file_name(&self) -> String {
-        self.path.file_name().unwrap().to_str().unwrap().to_owned()
+        self.path
+            .file_name()
+            .expect("If this method is called the file should be valid")
+            .to_string_lossy()
+            .to_string()
     }
 
     pub fn last_edit(&self) -> String {
-        let time: DateTime<Utc> = self.path.metadata().unwrap().modified().unwrap().into();
+        let time: DateTime<Utc> = self
+            .path
+            .metadata()
+            .expect("If this method is called the file should exists")
+            .modified()
+            .expect("Supported platforms should have this method")
+            .into();
         time.format("%Y-%m-%d %H:%M:%S").to_string()
     }
 
     #[cfg(unix)]
     pub fn size(&self) -> u64 {
-        self.path.metadata().unwrap().size()
+        self.path
+            .metadata()
+            .expect("If this method is called the file should exists")
+            .size()
     }
 
     #[cfg(target_os = "windows")]
     pub fn size(&self) -> u64 {
-        self.path.metadata().unwrap().file_size()
+        self.path
+            .metadata()
+            .expect("If this method is called the file should exists")
+            .file_size()
     }
 
     pub fn extension(&self) -> String {
-        self.path.extension().unwrap().to_str().unwrap().to_owned()
+        self.path
+            .extension()
+            .map_or_else(|| String::from("None"), |e| e.to_string_lossy().to_string())
     }
 
-    pub fn get_digest(&self, algorithm: &HashFunction) -> Option<&Digest> {
-        self.digests.get(algorithm)
+    pub fn get_digest(&self, algorithm: &HashFunction) -> Digest {
+        self.digests
+            .get(algorithm)
+            .expect("The searched hash function should always be present")
+            .clone()
     }
 
     pub fn add_digest_for(&mut self, algorithm: &HashFunction) {
@@ -100,9 +118,9 @@ impl HashedFile {
 
     pub fn get_from_column(&self, column: &TableColumns) -> String {
         match column {
-            TableColumns::Path => self.path.display().to_string(),
+            TableColumns::Path => self.path.to_string_lossy().to_string(),
             TableColumns::FileName => self.file_name(),
-            TableColumns::Algorithms(alg) => self.get_digest(alg).unwrap().to_owned(),
+            TableColumns::Algorithms(alg) => self.get_digest(alg),
             TableColumns::LastEdit => self.last_edit(),
             TableColumns::FileSize => self.size().to_string(),
             TableColumns::Extension => self.extension(),

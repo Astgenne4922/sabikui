@@ -1,8 +1,11 @@
-use egui::{Align, CentralPanel, Event, Layout, Response, ScrollArea, Sense, TextStyle};
+use egui::{CentralPanel, Event, Response, ScrollArea, Sense, TextStyle};
 use egui_extras::{Column, TableBuilder};
 use std::sync::mpsc;
 
-use crate::gui::{actions::Action, data::state::State};
+use crate::gui::{
+    actions::Action,
+    data::{constants::labels, state::State},
+};
 
 pub struct Body {
     message_sender: mpsc::Sender<Action>,
@@ -39,16 +42,11 @@ impl Body {
             .max(ui.spacing().interact_size.y);
         let available_height = ui.available_height();
 
-        let columns = state
-            .columns
-            .iter()
-            .filter_map(|(col, is_active)| if *is_active { Some(col.clone()) } else { None })
-            .collect::<Vec<_>>();
+        let columns = state.active_columns();
 
         TableBuilder::new(ui)
             .striped(true)
             .resizable(true)
-            .cell_layout(Layout::left_to_right(Align::Min))
             .columns(
                 Column::remainder().at_least(100.0).clip(true).resizable(true),
                 columns.len() + 1,
@@ -57,6 +55,7 @@ impl Body {
             .max_scroll_height(available_height)
             .sense(Sense::click())
             .header(20.0, |mut header| {
+                // TODO Sort button
                 for col in &columns {
                     header.col(|ui| {
                         ui.style_mut().interaction.selectable_labels = false;
@@ -66,22 +65,21 @@ impl Body {
             })
             .body(|body| {
                 body.rows(text_height, state.files.len(), |mut row| {
-                    let file = &state.files[row.index()];
+                    let index = row.index();
+                    let file = &state.files[index];
 
-                    row.set_selected(state.selected_rows.contains(&row.index()));
+                    row.set_selected(state.selected_rows.contains(&index));
 
                     for col in &columns {
                         row.col(|ui| {
                             ui.style_mut().interaction.selectable_labels = false;
-                            let text = file.get_from_column(col);
-                            ui.label(text);
+                            ui.label(file.get_from_column(col));
                         });
                     }
 
                     self.context_menu(&row.response(), state);
 
                     if row.response().clicked() {
-                        let index = row.index();
                         // SHIFT LEFT CLICK
                         if row.response().ctx.input(|i| i.modifiers.shift_only()) {
                             let range = if index < state.last_selected {
@@ -113,19 +111,21 @@ impl Body {
 
     fn context_menu(&self, response: &Response, state: &State) {
         response.context_menu(|ui| {
+            let mut events = Vec::new();
+
             ui.add_enabled_ui(!state.selected_rows.is_empty(), |ui| {
-                if ui.button("Save Selected     CTRL + S").clicked() {
-                    self.message_sender.send(Action::SaveSelected).unwrap();
+                if ui.button(labels::SAVE_SELECTED).clicked() {
+                    events.push(Action::SaveSelected);
                 }
 
-                if ui.button("Copy Selected     CTRL + C").clicked() {
-                    self.message_sender.send(Action::CopySelected).unwrap();
+                if ui.button(labels::COPY_SELECTED).clicked() {
+                    events.push(Action::CopySelected);
                 }
 
-                ui.menu_button("Copy", |ui| {
+                ui.menu_button(labels::COPY, |ui| {
                     for alg in &state.algorithm_list() {
                         if ui.button(alg.to_ascii_uppercase()).clicked() {
-                            self.message_sender.send(Action::CopyHash(alg.to_owned())).unwrap();
+                            events.push(Action::CopyHash(alg.to_owned()));
                         }
                     }
                 });
@@ -133,11 +133,11 @@ impl Body {
 
             ui.separator();
 
-            if ui.button("Explorer Paste    CTRL + V").clicked() {
+            if ui.button(labels::EXPLORER_PASTE).clicked() {
                 ui.ctx().input(|i| {
                     for event in &i.events {
                         if let Event::Paste(to_paste) = event {
-                            self.message_sender.send(Action::Paste(to_paste.clone())).unwrap();
+                            events.push(Action::Paste(to_paste.clone()));
                         }
                     }
                 });
@@ -145,8 +145,14 @@ impl Body {
 
             ui.separator();
 
-            if ui.button("Refresh                 F5").clicked() {
-                self.message_sender.send(Action::Refresh).unwrap();
+            if ui.button(labels::REFRESH).clicked() {
+                events.push(Action::Refresh);
+            }
+
+            for event in events {
+                self.message_sender
+                    .send(event)
+                    .expect("The receiver should always be available");
             }
         });
     }

@@ -8,14 +8,19 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
         parser::Inputs::Files { paths } if paths.iter().all(|p| p.exists() && p.is_file()) => paths,
         parser::Inputs::Directory { path } if path.exists() && path.is_dir() => path // TODO recurse sub folders
             .read_dir()
+            // TODO Handle errors
             .unwrap()
-            .filter_map(|entry| entry.as_ref().unwrap().path().is_file().then(|| entry.unwrap().path()))
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| path.is_file())
             .collect(),
         parser::Inputs::Wildcard { regex } => glob::glob(&regex)
+            // TODO Handle errors
             .unwrap()
-            .filter_map(|entry| entry.as_ref().unwrap().is_file().then(|| entry.unwrap()))
+            .flatten()
+            .filter(|entry| entry.is_file())
             .collect(),
-        _ => panic!("Invalid argument"), // TODO handle errors
+        _ => panic!("Invalid argument"), // TODO Handle errors
     };
 
     let mut output = format!("filename,{}", algorithms.join(","));
@@ -24,7 +29,10 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
     for i in 0..files.len() {
         output = format!(
             "{output}\n{},{}",
-            files[i].file_name().unwrap().to_str().unwrap(),
+            files[i]
+                .file_name()
+                .expect("There should always be a file name")
+                .to_string_lossy(),
             digests.iter().map(|v| v[i].clone()).collect::<Vec<_>>().join(",")
         );
     }
