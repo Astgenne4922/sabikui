@@ -1,11 +1,11 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
     body::Body,
-    data::state::State,
+    data::{constants::shortcuts, state::State},
     menu::Menu,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
-use egui::{Event, Key, KeyboardShortcut, Modifiers};
+use egui::{Button, Event, KeyboardShortcut, ModifierNames, Response};
 use std::sync::mpsc;
 
 mod actions;
@@ -81,16 +81,16 @@ impl App for Sabikui {
                 )));
             }
 
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::A)) {
+            if i.consume_shortcut(&shortcuts::SELECT_ALL) {
                 events.push(Action::SelectAll);
             }
             if i.events.iter().any(|ev| matches!(ev, egui::Event::Copy)) {
                 events.push(Action::CopySelected);
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::D)) {
+            if i.consume_shortcut(&shortcuts::DESELECT_ALL) {
                 events.push(Action::DeselectAll);
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::COMMAND, Key::S)) {
+            if i.consume_shortcut(&shortcuts::SAVE_SELECTED) {
                 events.push(Action::SaveSelected);
             }
             for event in &i.events {
@@ -101,19 +101,19 @@ impl App for Sabikui {
             if i.events.iter().any(|ev| matches!(ev, egui::Event::Cut)) {
                 events.push(Action::ClearAll);
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F2)) {
+            if i.consume_shortcut(&shortcuts::ADD_FILE) {
                 events.push(Action::AddFiles(None));
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F3)) {
+            if i.consume_shortcut(&shortcuts::ADD_FOLDER) {
                 events.push(Action::AddFolders(None));
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F4)) {
+            if i.consume_shortcut(&shortcuts::ADD_WILDCARD) {
                 events.push(Action::AddWildcard);
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::F5)) {
+            if i.consume_shortcut(&shortcuts::REFRESH) {
                 events.push(Action::Refresh);
             }
-            if i.consume_shortcut(&KeyboardShortcut::new(Modifiers::NONE, Key::Delete)) {
+            if i.consume_shortcut(&shortcuts::CLEAR_SELECTED) {
                 events.push(Action::ClearSelected);
             }
 
@@ -129,4 +129,8 @@ impl App for Sabikui {
             ctx.copy_text(to_copy);
         }
     }
+}
+
+fn shortcut_button(ui: &mut egui::Ui, label: &str, shortcut: KeyboardShortcut) -> Response {
+    ui.add(Button::new(label).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))
 }

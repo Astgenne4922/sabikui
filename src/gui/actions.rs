@@ -11,7 +11,7 @@ use crate::gui::data::{
     table_columns::TableColumns,
 };
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(Clone)]
 pub enum Action {
     Refresh,
     Paste(String),
@@ -25,7 +25,7 @@ pub enum Action {
     AddFolders(Option<Vec<PathBuf>>),
     AddWildcard,
     CopyHash(HashFunction),
-    SortBy(String),
+    SortBy(TableColumns),
 }
 
 pub struct ActionHandler {

@@ -1,10 +1,11 @@
 use crate::gui::{
     actions::Action,
     data::{
-        constants::{icons, labels},
+        constants::{icons, labels, shortcuts},
         state::State,
         table_columns::TableColumns,
     },
+    shortcut_button,
 };
 use egui::{Event, MenuBar, TopBottomPanel};
 use std::sync::mpsc;
@@ -111,31 +112,31 @@ impl Menu {
         ui.menu_button(labels::FILE_MENU, |ui| {
             let mut events = Vec::new();
 
-            if ui.button(labels::ADD_FILE).clicked() {
+            if shortcut_button(ui, labels::ADD_FILE, shortcuts::ADD_FILE).clicked() {
                 events.push(Action::AddFiles(None));
             }
 
-            if ui.button(labels::ADD_FOLDER).clicked() {
+            if shortcut_button(ui, labels::ADD_FOLDER, shortcuts::ADD_FOLDER).clicked() {
                 events.push(Action::AddFolders(None));
             }
 
-            if ui.button(labels::ADD_WILDCARD).clicked() {
+            if shortcut_button(ui, labels::ADD_WILDCARD, shortcuts::ADD_WILDCARD).clicked() {
                 events.push(Action::AddWildcard);
             }
 
             ui.separator();
 
-            if ui.button(labels::SAVE_SELECTED).clicked() {
+            if shortcut_button(ui, labels::SAVE_SELECTED, shortcuts::SAVE_SELECTED).clicked() {
                 events.push(Action::SaveSelected);
             }
 
             ui.separator();
 
-            if ui.button(labels::CLEAR_ALL).clicked() {
+            if shortcut_button(ui, labels::CLEAR_ALL, shortcuts::CLEAR_ALL).clicked() {
                 events.push(Action::ClearAll);
             }
 
-            if ui.button(labels::CLEAR_SELECTED).clicked() {
+            if shortcut_button(ui, labels::CLEAR_SELECTED, shortcuts::CLEAR_SELECTED).clicked() {
                 events.push(Action::ClearSelected);
             }
 
@@ -157,11 +158,11 @@ impl Menu {
         ui.menu_button(labels::EDIT_MENU, |ui| {
             let mut events = Vec::new();
 
-            if ui.button(labels::COPY_SELECTED).clicked() {
+            if shortcut_button(ui, labels::COPY_SELECTED, shortcuts::COPY_SELECTED).clicked() {
                 events.push(Action::CopySelected);
             }
 
-            if ui.button(labels::EXPLORER_PASTE).clicked() {
+            if shortcut_button(ui, labels::EXPLORER_PASTE, shortcuts::EXPLORER_PASTE).clicked() {
                 ui.ctx().input(|i| {
                     for event in &i.events {
                         if let Event::Paste(to_paste) = event {
@@ -183,11 +184,11 @@ impl Menu {
 
             ui.separator();
 
-            if ui.button(labels::SELECT_ALL).clicked() {
+            if shortcut_button(ui, labels::SELECT_ALL, shortcuts::SELECT_ALL).clicked() {
                 events.push(Action::SelectAll);
             }
 
-            if ui.button(labels::DESELECT_ALL).clicked() {
+            if shortcut_button(ui, labels::DESELECT_ALL, shortcuts::DESELECT_ALL).clicked() {
                 events.push(Action::DeselectAll);
             }
 
@@ -200,36 +201,54 @@ impl Menu {
     }
 
     fn view_menu(&self, ui: &mut egui::Ui, state: &State) {
+        let make_label = |column: &TableColumns| {
+            if let Some((col, is_reversed)) = &state.sorting_column
+                && col == column
+            {
+                if *is_reversed {
+                    format!("{} {column}", icons::DESCENDING)
+                } else {
+                    format!("{} {column}", icons::ASCENDING)
+                }
+            } else {
+                format!("  {column}")
+            }
+        };
+
         ui.menu_button(labels::VIEW_MENU, |ui| {
             let mut events = Vec::new();
 
             ui.menu_button(labels::SORT_BY, |ui| {
-                if ui.button(labels::FILENAME).clicked() {
-                    events.push(Action::SortBy("Filename".to_owned()));
+                if ui.button(make_label(&TableColumns::FileName)).clicked() {
+                    events.push(Action::SortBy(TableColumns::FileName));
+                }
+
+                if ui.button(make_label(&TableColumns::Path)).clicked() {
+                    events.push(Action::SortBy(TableColumns::Path));
                 }
 
                 ui.menu_button(labels::ALGORITHM, |ui| {
                     for alg in state.algorithm_list() {
-                        if ui.button(alg.to_ascii_uppercase()).clicked() {
-                            events.push(Action::SortBy(alg));
+                        if ui.button(make_label(&TableColumns::Algorithms(alg.clone()))).clicked() {
+                            events.push(Action::SortBy(TableColumns::Algorithms(alg)));
                         }
                     }
                 });
 
-                if ui.button(labels::EDIT_TIME).clicked() {
-                    events.push(Action::SortBy("Edit Time".to_owned()));
+                if ui.button(make_label(&TableColumns::LastEdit)).clicked() {
+                    events.push(Action::SortBy(TableColumns::LastEdit));
                 }
 
-                if ui.button(labels::FILE_SIZE).clicked() {
-                    events.push(Action::SortBy("File Size".to_owned()));
+                if ui.button(make_label(&TableColumns::FileSize)).clicked() {
+                    events.push(Action::SortBy(TableColumns::FileSize));
                 }
 
-                if ui.button(labels::EXTENSION).clicked() {
-                    events.push(Action::SortBy("Extension".to_owned()));
+                if ui.button(make_label(&TableColumns::Extension)).clicked() {
+                    events.push(Action::SortBy(TableColumns::Extension));
                 }
             });
 
-            if ui.button(labels::REFRESH).clicked() {
+            if shortcut_button(ui, labels::REFRESH, shortcuts::REFRESH).clicked() {
                 events.push(Action::Refresh);
             }
 
