@@ -11,6 +11,7 @@ use crate::{
 pub struct State {
     pub files: Vec<HashedFile>,
     pub columns: Vec<(TableColumns, bool)>,
+    pub sorting_column: Option<(TableColumns, bool)>,
     pub algorithms: HashMap<HashFunction, bool>,
     pub always_on_top: bool,
     pub selected_rows: HashSet<usize>,
@@ -30,6 +31,7 @@ impl State {
         Self {
             files: Vec::default(),
             columns: cols,
+            sorting_column: None,
             algorithms: hashes.iter().map(|h| (h.to_owned(), true)).collect(),
             always_on_top: false,
             selected_rows: HashSet::default(),
@@ -53,5 +55,19 @@ impl State {
             .collect();
         active_algorithms.sort();
         active_algorithms
+    }
+
+    pub fn sort_table(&mut self, column: TableColumns) {
+        let reverse = match &self.sorting_column {
+            Some((col, is_reverse)) if *col == column => !is_reverse,
+            _ => false,
+        };
+
+        self.files.sort_by_key(|f| f.get_from_column(&column));
+        if reverse {
+            self.files.reverse();
+        }
+
+        self.sorting_column = Some((column, reverse));
     }
 }

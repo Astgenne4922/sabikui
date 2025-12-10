@@ -72,7 +72,7 @@ impl ActionHandler {
                 Action::CopyHash(alg) => {
                     state.to_copy = Some(copy_hash(&alg, &state.files, &state.selected_rows));
                 }
-                Action::SortBy(_) => sort_by(),
+                Action::SortBy(column) => state.sort_table(column),
             }
         }
     }
@@ -181,11 +181,6 @@ fn copy_hash(alg: &HashFunction, files: &[HashedFile], selected_rows: &HashSet<u
         .filter_map(|(i, file)| selected_rows.contains(&i).then_some(file.get_digest(alg)))
         .collect::<Vec<_>>()
         .join("\n")
-}
-
-// TODO Sort By
-fn sort_by() {
-    println!("SORT BY");
 }
 
 fn get_files(paths: &[PathBuf]) -> Vec<PathBuf> {
