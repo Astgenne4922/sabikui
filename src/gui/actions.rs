@@ -39,17 +39,11 @@ impl ActionHandler {
 
     pub fn handle(&self, state: &mut State) {
         while let Ok(action) = self.message_receiver.try_recv() {
-            let alg_list = state.algorithm_list();
-
             match action {
-                Action::Refresh => {
-                    refresh(&mut state.files, &alg_list);
-                }
-                Action::Paste(to_paste) => {
-                    explorer_paste(&to_paste, &mut state.files, &alg_list);
-                }
-                Action::SelectAll => select_all(state.files.len(), &mut state.selected_rows, &mut state.last_selected),
-                Action::DeselectAll => deselect_all(&mut state.selected_rows, &mut state.last_selected),
+                Action::Refresh => state.refresh(),
+                Action::Paste(to_paste) => explorer_paste(&to_paste, state),
+                Action::SelectAll => state.select_all(),
+                Action::DeselectAll => state.deselect_all(),
                 Action::CopySelected => {
                     state.to_copy = Some(copy_selected(
                         &state.files,
@@ -58,46 +52,25 @@ impl ActionHandler {
                     ));
                 }
                 Action::SaveSelected => save_selected(&state.files, &state.selected_rows, &state.active_columns()),
-                Action::ClearSelected => {
-                    clear_selected(&mut state.files, &mut state.selected_rows, &mut state.last_selected);
-                }
-                Action::ClearAll => clear_all(&mut state.files, &mut state.selected_rows, &mut state.last_selected),
-                Action::AddFiles(new_files) => {
-                    add_files(new_files, &mut state.files, &alg_list);
-                }
-                Action::AddFolders(folders) => {
-                    add_folders(folders, &mut state.files, &alg_list);
-                }
+                Action::ClearSelected => state.clear_selected(),
+                Action::ClearAll => state.clear_all(),
+                Action::AddFiles(new_files) => add_files(new_files, state),
+                Action::AddFolders(folders) => add_folders(folders, state),
                 Action::AddWildcard => add_wildcard(),
-                Action::CopyHash(alg) => {
-                    state.to_copy = Some(copy_hash(&alg, &state.files, &state.selected_rows));
-                }
+                Action::CopyHash(alg) => state.to_copy = Some(copy_hash(&alg, &state.files, &state.selected_rows)),
                 Action::SortBy(column) => state.sort_table(column),
             }
         }
     }
 }
 
-fn refresh(files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
-    *files = HashedFile::build_vec(
-        &get_files(&files.iter().map(HashedFile::get_path).collect::<Vec<_>>()),
-        algorithms,
-    );
-}
-
-fn explorer_paste(pasted: &str, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
-    let pasted_lines = pasted.lines().map(PathBuf::from).filter(|path| path.exists()).collect();
-    add_folders(Some(pasted_lines), files, algorithms);
-}
-
-fn select_all(num_rows: usize, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    *selected_rows = (0..num_rows).collect();
-    *last_selected = 0;
-}
-
-fn deselect_all(selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    selected_rows.clear();
-    *last_selected = 0;
+fn explorer_paste(pasted: &str, state: &mut State) {
+    let pasted_lines = pasted
+        .lines()
+        .map(PathBuf::from)
+        .filter(|path| path.exists())
+        .collect::<Vec<_>>();
+    state.add_files(&pasted_lines);
 }
 
 fn copy_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: &[TableColumns]) -> String {
@@ -136,36 +109,20 @@ fn save_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: 
     }
 }
 
-fn clear_selected(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    *files = files
-        .iter()
-        .enumerate()
-        .filter_map(|(i, file)| (!selected_rows.contains(&i)).then_some(file.clone()))
-        .collect::<Vec<_>>();
-    selected_rows.clear();
-    *last_selected = 0;
-}
-
-fn clear_all(files: &mut Vec<HashedFile>, selected_rows: &mut HashSet<usize>, last_selected: &mut usize) {
-    files.clear();
-    selected_rows.clear();
-    *last_selected = 0;
-}
-
-fn add_files(new_files: Option<Vec<PathBuf>>, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+fn add_files(new_files: Option<Vec<PathBuf>>, state: &mut State) {
     let new_files = new_files.or_else(|| rfd::FileDialog::new().pick_files());
 
     if let Some(new_files) = new_files {
         let new_files = new_files.into_iter().filter(|f| f.is_file()).collect::<Vec<_>>();
-        files.extend(HashedFile::build_vec(&new_files, algorithms));
+        state.add_files(&new_files);
     }
 }
 
-fn add_folders(folders: Option<Vec<PathBuf>>, files: &mut Vec<HashedFile>, algorithms: &[HashFunction]) {
+fn add_folders(folders: Option<Vec<PathBuf>>, state: &mut State) {
     let folders = folders.or_else(|| rfd::FileDialog::new().pick_folders());
 
     if let Some(folders) = folders {
-        files.extend(HashedFile::build_vec(&get_files(&folders), algorithms));
+        state.add_files(&get_files(&folders));
     }
 }
 

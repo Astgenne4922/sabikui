@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 use crate::{
     algorithms,
@@ -55,6 +58,42 @@ impl State {
             .collect();
         active_algorithms.sort();
         active_algorithms
+    }
+
+    pub fn refresh(&mut self) {
+        self.files = HashedFile::build_vec(
+            &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
+            &self.algorithm_list(),
+        );
+    }
+
+    pub fn select_all(&mut self) {
+        self.selected_rows = (0..self.files.len()).collect();
+        self.last_selected = 0;
+    }
+
+    pub fn deselect_all(&mut self) {
+        self.selected_rows.clear();
+        self.last_selected = 0;
+    }
+
+    pub fn clear_selected(&mut self) {
+        self.files = self
+            .files
+            .iter()
+            .enumerate()
+            .filter_map(|(i, file)| (!self.selected_rows.contains(&i)).then_some(file.clone()))
+            .collect::<Vec<_>>();
+        self.deselect_all();
+    }
+
+    pub fn clear_all(&mut self) {
+        self.files.clear();
+        self.deselect_all();
+    }
+
+    pub fn add_files(&mut self, files: &[PathBuf]) {
+        self.files.extend(HashedFile::build_vec(files, &self.algorithm_list()));
     }
 
     pub fn sort_table(&mut self, column: TableColumns) {
