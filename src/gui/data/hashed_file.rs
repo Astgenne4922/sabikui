@@ -127,3 +127,9 @@ impl HashedFile {
         }
     }
 }
+
+impl PartialEq for HashedFile {
+    fn eq(&self, other: &Self) -> bool {
+        self.digests == other.digests
+    }
+}

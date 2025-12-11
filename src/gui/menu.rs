@@ -33,7 +33,12 @@ impl Menu {
                     events.extend(file::menu(ui));
                     events.extend(edit::menu(ui, &state.algorithm_list()));
                     events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
-                    events.extend(options::menu(ui, state.columns(), *state.always_on_top()));
+                    events.extend(options::menu(
+                        ui,
+                        state.columns(),
+                        *state.always_on_top(),
+                        *state.mark_same(),
+                    ));
                     help::menu(ui);
                 });
                 events.extend(tool::bar(ui));

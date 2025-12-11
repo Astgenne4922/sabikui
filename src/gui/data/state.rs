@@ -18,6 +18,7 @@ pub struct State {
     sorting_column: Option<(TableColumns, bool)>,
     algorithms: HashMap<HashFunction, bool>,
     always_on_top: bool,
+    mark_same: bool,
     selected_rows: HashSet<usize>,
     last_selected: usize,
     pub to_copy: Option<String>,
@@ -38,6 +39,7 @@ impl State {
             sorting_column: None,
             algorithms: hashes.iter().map(|h| (h.to_owned(), true)).collect(),
             always_on_top: false,
+            mark_same: true,
             selected_rows: HashSet::default(),
             last_selected: Default::default(),
             to_copy: Option::default(),
@@ -147,6 +149,10 @@ impl State {
         self.always_on_top = !self.always_on_top;
     }
 
+    pub const fn toggle_mark_same(&mut self) {
+        self.mark_same = !self.mark_same;
+    }
+
     pub fn sort_table(&mut self, column: TableColumns) {
         let reverse = match &self.sorting_column {
             Some((col, is_reverse)) if *col == column => !is_reverse,
@@ -159,6 +165,26 @@ impl State {
         }
 
         self.sorting_column = Some((column, reverse));
+    }
+
+    pub fn pair_same_hashes(&self) -> Vec<Vec<usize>> {
+        let mut pairs = Vec::new();
+
+        for (idx1, file1) in self.files.iter().enumerate() {
+            let mut pair = vec![idx1];
+
+            for (idx2, file2) in self.files.iter().enumerate() {
+                if file1 == file2 {
+                    pair.push(idx2);
+                }
+            }
+
+            if pair.len() > 1 {
+                pairs.push(pair);
+            }
+        }
+
+        pairs
     }
 }
 
@@ -178,6 +204,10 @@ impl State {
 
     pub const fn always_on_top(&self) -> &bool {
         &self.always_on_top
+    }
+
+    pub const fn mark_same(&self) -> &bool {
+        &self.mark_same
     }
 
     pub const fn selected_rows(&self) -> &HashSet<usize> {
