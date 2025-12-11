@@ -1,17 +1,28 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
-    body::Body,
     data::{constants::shortcuts, state::State},
     menu::Menu,
+    table::Body,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
 use egui::{Button, Event, KeyboardShortcut, ModifierNames, Response};
 use std::sync::mpsc;
 
 mod actions;
-mod body;
 mod data;
 mod menu;
+mod table;
+
+const KEYBINDS: [(&KeyboardShortcut, Action); 8] = [
+    (&shortcuts::SELECT_ALL, Action::SelectAll),
+    (&shortcuts::DESELECT_ALL, Action::DeselectAll),
+    (&shortcuts::SAVE_SELECTED, Action::SaveSelected),
+    (&shortcuts::ADD_FILE, Action::AddFiles(None)),
+    (&shortcuts::ADD_FOLDER, Action::AddFolders(None)),
+    (&shortcuts::ADD_WILDCARD, Action::AddWildcard),
+    (&shortcuts::REFRESH, Action::Refresh),
+    (&shortcuts::CLEAR_SELECTED, Action::ClearSelected),
+];
 
 pub fn run() {
     let native_options = NativeOptions::default();
@@ -81,40 +92,19 @@ impl App for Sabikui {
                 )));
             }
 
-            if i.consume_shortcut(&shortcuts::SELECT_ALL) {
-                events.push(Action::SelectAll);
-            }
-            if i.events.iter().any(|ev| matches!(ev, egui::Event::Copy)) {
-                events.push(Action::CopySelected);
-            }
-            if i.consume_shortcut(&shortcuts::DESELECT_ALL) {
-                events.push(Action::DeselectAll);
-            }
-            if i.consume_shortcut(&shortcuts::SAVE_SELECTED) {
-                events.push(Action::SaveSelected);
-            }
-            for event in &i.events {
-                if let Event::Paste(to_paste) = event {
-                    events.push(Action::Paste(to_paste.clone()));
+            for (shortcut, action) in KEYBINDS {
+                if i.consume_shortcut(shortcut) {
+                    events.push(action);
                 }
             }
-            if i.events.iter().any(|ev| matches!(ev, egui::Event::Cut)) {
-                events.push(Action::ClearAll);
-            }
-            if i.consume_shortcut(&shortcuts::ADD_FILE) {
-                events.push(Action::AddFiles(None));
-            }
-            if i.consume_shortcut(&shortcuts::ADD_FOLDER) {
-                events.push(Action::AddFolders(None));
-            }
-            if i.consume_shortcut(&shortcuts::ADD_WILDCARD) {
-                events.push(Action::AddWildcard);
-            }
-            if i.consume_shortcut(&shortcuts::REFRESH) {
-                events.push(Action::Refresh);
-            }
-            if i.consume_shortcut(&shortcuts::CLEAR_SELECTED) {
-                events.push(Action::ClearSelected);
+
+            for event in &i.events {
+                match event {
+                    Event::Copy => events.push(Action::CopySelected),
+                    Event::Paste(to_paste) => events.push(Action::Paste(to_paste.clone())),
+                    Event::Cut => events.push(Action::ClearAll),
+                    _ => {}
+                }
             }
 
             for event in events {
