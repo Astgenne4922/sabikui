@@ -2,7 +2,7 @@ use crate::gui::{
     actions::{Action, ActionHandler},
     data::{constants::shortcuts, state::State},
     menu::Menu,
-    table::Body,
+    table::Table,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
 use egui::{Button, Event, KeyboardShortcut, ModifierNames, Response};
@@ -32,7 +32,7 @@ pub fn run() {
 struct Sabikui {
     state: State,
     menu: Menu,
-    body: Body,
+    table: Table,
     action_handler: ActionHandler,
     message_sender: mpsc::Sender<Action>,
 }
@@ -67,7 +67,7 @@ impl Sabikui {
         Self {
             state: State::new(),
             menu: Menu::new(sx.clone()),
-            body: Body::new(sx.clone()),
+            table: Table::new(sx.clone()),
             action_handler: ActionHandler::new(rx),
             message_sender: sx,
         }
@@ -76,8 +76,8 @@ impl Sabikui {
 
 impl App for Sabikui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.menu.show(ctx, &mut self.state);
-        self.body.show(ctx, &mut self.state);
+        self.menu.show(ctx, &self.state);
+        self.table.show(ctx, &self.state);
 
         ctx.input_mut(|i| {
             let mut events = Vec::new();

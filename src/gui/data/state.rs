@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
+    ops::RangeInclusive,
     path::PathBuf,
 };
 
@@ -12,13 +13,13 @@ use crate::{
 };
 
 pub struct State {
-    pub files: Vec<HashedFile>,
-    pub columns: Vec<(TableColumns, bool)>,
-    pub sorting_column: Option<(TableColumns, bool)>,
-    pub algorithms: HashMap<HashFunction, bool>,
-    pub always_on_top: bool,
-    pub selected_rows: HashSet<usize>,
-    pub last_selected: usize,
+    files: Vec<HashedFile>,
+    columns: Vec<(TableColumns, bool)>,
+    sorting_column: Option<(TableColumns, bool)>,
+    algorithms: HashMap<HashFunction, bool>,
+    always_on_top: bool,
+    selected_rows: HashSet<usize>,
+    last_selected: usize,
     pub to_copy: Option<String>,
 }
 
@@ -72,6 +73,33 @@ impl State {
         self.last_selected = 0;
     }
 
+    pub fn select_single_row(&mut self, index: usize) {
+        let a = self.selected_rows.contains(&index);
+        self.deselect_all();
+        if a {
+            self.selected_rows.insert(index);
+            self.last_selected = index;
+        } else {
+            self.last_selected = 0;
+        }
+    }
+
+    pub fn add_row_to_selection(&mut self, index: usize) {
+        if self.selected_rows.contains(&index) {
+            self.selected_rows.remove(&index);
+        } else {
+            self.selected_rows.insert(index);
+        }
+        self.last_selected = index;
+    }
+
+    pub fn select_range(&mut self, range: RangeInclusive<usize>) {
+        self.deselect_all();
+        for i in range {
+            self.selected_rows.insert(i);
+        }
+    }
+
     pub fn deselect_all(&mut self) {
         self.selected_rows.clear();
         self.last_selected = 0;
@@ -83,7 +111,7 @@ impl State {
             .iter()
             .enumerate()
             .filter_map(|(i, file)| (!self.selected_rows.contains(&i)).then_some(file.clone()))
-            .collect::<Vec<_>>();
+            .collect();
         self.deselect_all();
     }
 
@@ -94,6 +122,29 @@ impl State {
 
     pub fn add_files(&mut self, files: &[PathBuf]) {
         self.files.extend(HashedFile::build_vec(files, &self.algorithm_list()));
+    }
+
+    pub fn toggle_column(&mut self, column: &TableColumns) {
+        let (column, is_checked) = self
+            .columns
+            .iter_mut()
+            .find(|(c, _)| c == column)
+            .expect("The column should always be present");
+
+        *is_checked = !*is_checked;
+        if let TableColumns::Algorithms(alg) = column {
+            for file in &mut self.files {
+                if *is_checked {
+                    file.add_digest_for(alg);
+                } else {
+                    file.remove_digest(alg);
+                }
+            }
+        }
+    }
+
+    pub const fn toggle_always_on_top(&mut self) {
+        self.always_on_top = !self.always_on_top;
     }
 
     pub fn sort_table(&mut self, column: TableColumns) {
@@ -108,5 +159,32 @@ impl State {
         }
 
         self.sorting_column = Some((column, reverse));
+    }
+}
+
+// GETTERS
+impl State {
+    pub const fn files(&self) -> &Vec<HashedFile> {
+        &self.files
+    }
+
+    pub const fn columns(&self) -> &Vec<(TableColumns, bool)> {
+        &self.columns
+    }
+
+    pub const fn sorting_column(&self) -> Option<&(TableColumns, bool)> {
+        self.sorting_column.as_ref()
+    }
+
+    pub const fn always_on_top(&self) -> &bool {
+        &self.always_on_top
+    }
+
+    pub const fn selected_rows(&self) -> &HashSet<usize> {
+        &self.selected_rows
+    }
+
+    pub const fn last_selected(&self) -> &usize {
+        &self.last_selected
     }
 }

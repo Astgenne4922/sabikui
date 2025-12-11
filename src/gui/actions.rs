@@ -1,6 +1,7 @@
 use std::{
     collections::{HashSet, VecDeque},
     fs,
+    ops::RangeInclusive,
     path::PathBuf,
     sync::mpsc,
 };
@@ -26,6 +27,11 @@ pub enum Action {
     AddWildcard,
     CopyHash(HashFunction),
     SortBy(TableColumns),
+    ToggleColumn(TableColumns),
+    ToggleAlwaysOnTop,
+    SelectSingleRow(usize),
+    AddRowToSelection(usize),
+    SelectRowRange(RangeInclusive<usize>),
 }
 
 pub struct ActionHandler {
@@ -46,19 +52,24 @@ impl ActionHandler {
                 Action::DeselectAll => state.deselect_all(),
                 Action::CopySelected => {
                     state.to_copy = Some(copy_selected(
-                        &state.files,
-                        &state.selected_rows,
+                        state.files(),
+                        state.selected_rows(),
                         &state.active_columns(),
                     ));
                 }
-                Action::SaveSelected => save_selected(&state.files, &state.selected_rows, &state.active_columns()),
+                Action::SaveSelected => save_selected(state.files(), state.selected_rows(), &state.active_columns()),
                 Action::ClearSelected => state.clear_selected(),
                 Action::ClearAll => state.clear_all(),
                 Action::AddFiles(new_files) => add_files(new_files, state),
                 Action::AddFolders(folders) => add_folders(folders, state),
                 Action::AddWildcard => add_wildcard(),
-                Action::CopyHash(alg) => state.to_copy = Some(copy_hash(&alg, &state.files, &state.selected_rows)),
+                Action::CopyHash(alg) => state.to_copy = Some(copy_hash(&alg, state.files(), state.selected_rows())),
                 Action::SortBy(column) => state.sort_table(column),
+                Action::ToggleColumn(table_column) => state.toggle_column(&table_column),
+                Action::ToggleAlwaysOnTop => state.toggle_always_on_top(),
+                Action::SelectSingleRow(index) => state.select_single_row(index),
+                Action::AddRowToSelection(index) => state.add_row_to_selection(index),
+                Action::SelectRowRange(range) => state.select_range(range),
             }
         }
     }

@@ -8,23 +8,23 @@ mod body;
 mod context_menu;
 mod header;
 
-pub struct Body {
+pub struct Table {
     message_sender: mpsc::Sender<Action>,
 }
 
-impl Body {
+impl Table {
     pub const fn new(message_sender: mpsc::Sender<Action>) -> Self {
         Self { message_sender }
     }
 
-    pub fn show(&self, ctx: &egui::Context, state: &mut State) {
+    pub fn show(&self, ctx: &egui::Context, state: &State) {
         let mut events = Vec::new();
 
         CentralPanel::default().show(ctx, |ui| {
             events.extend(context_menu::open(
                 &ui.interact(ui.min_rect(), ui.unique_id(), Sense::click()),
                 &state.algorithm_list(),
-                !state.selected_rows.is_empty(),
+                !state.selected_rows().is_empty(),
             ));
 
             ScrollArea::horizontal()
@@ -57,14 +57,14 @@ impl Body {
                         .header(20.0, |mut header| {
                             for column in &columns {
                                 header.col(|ui| {
-                                    if let Some(event) = header::button(ui, column, state.sorting_column.as_ref()) {
+                                    if let Some(event) = header::button(ui, column, state.sorting_column()) {
                                         events.push(event);
                                     }
                                 });
                             }
                         })
                         .body(|body| {
-                            body.rows(text_height, state.files.len(), |mut row| {
+                            body.rows(text_height, state.files().len(), |mut row| {
                                 events.extend(body::rows(&mut row, &columns, state));
                             });
                         });

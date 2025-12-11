@@ -18,8 +18,8 @@ impl Menu {
         Self { message_sender }
     }
 
-    pub fn show(&self, ctx: &egui::Context, state: &mut State) {
-        if state.always_on_top {
+    pub fn show(&self, ctx: &egui::Context, state: &State) {
+        if *state.always_on_top() {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
         } else {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
@@ -32,8 +32,8 @@ impl Menu {
                 MenuBar::new().ui(ui, |ui| {
                     events.extend(file::menu(ui));
                     events.extend(edit::menu(ui, &state.algorithm_list()));
-                    events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column.as_ref()));
-                    events.extend(options::menu(ui, state));
+                    events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
+                    events.extend(options::menu(ui, state.columns(), *state.always_on_top()));
                     help::menu(ui);
                 });
                 events.extend(tool::bar(ui));

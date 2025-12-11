@@ -8,7 +8,7 @@ use std::os::unix::fs::MetadataExt;
 #[cfg(target_os = "windows")]
 use std::os::windows::fs::MetadataExt;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 
 use crate::{
     algorithms::{many_hash_one_file, many_hashes_many_files, one_hash_one_file},
@@ -68,7 +68,7 @@ impl HashedFile {
     }
 
     pub fn last_edit(&self) -> String {
-        let time: DateTime<Utc> = self
+        let time: DateTime<Local> = self
             .path
             .metadata()
             .expect("If this method is called the file should exists")
