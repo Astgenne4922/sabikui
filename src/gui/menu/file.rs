@@ -3,7 +3,7 @@ use egui::Ui;
 use crate::gui::{
     actions::Action,
     data::constants::{labels, shortcuts},
-    shortcut_button,
+    utils::shortcut_button,
 };
 
 pub fn menu(ui: &mut Ui) -> Vec<Action> {

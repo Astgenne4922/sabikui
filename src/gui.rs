@@ -5,13 +5,14 @@ use crate::gui::{
     table::Table,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
-use egui::{Button, Event, KeyboardShortcut, ModifierNames, Response};
+use egui::{Event, KeyboardShortcut};
 use std::sync::mpsc;
 
 mod actions;
 mod data;
 mod menu;
 mod table;
+mod utils;
 
 const KEYBINDS: [(&KeyboardShortcut, Action); 8] = [
     (&shortcuts::SELECT_ALL, Action::SelectAll),
@@ -119,8 +120,4 @@ impl App for Sabikui {
             ctx.copy_text(to_copy);
         }
     }
-}
-
-fn shortcut_button(ui: &mut egui::Ui, label: &str, shortcut: KeyboardShortcut) -> Response {
-    ui.add(Button::new(label).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))
 }

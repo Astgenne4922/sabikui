@@ -6,7 +6,7 @@ use crate::gui::{
         constants::{labels, shortcuts},
         hashed_file::HashFunction,
     },
-    shortcut_button,
+    utils::shortcut_button,
 };
 
 pub fn menu(ui: &mut Ui, algorithm_list: &[HashFunction]) -> Vec<Action> {

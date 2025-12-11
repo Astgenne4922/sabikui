@@ -1,11 +1,12 @@
-use egui::{Button, Response, Ui};
+use egui::Ui;
 
 use crate::gui::{
     actions::Action,
     data::{constants::labels, table_columns::TableColumns},
+    utils::check_button,
 };
 
-pub fn menu(ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool) -> Vec<Action> {
+pub fn menu(ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, mark_same: bool) -> Vec<Action> {
     let mut events = Vec::new();
 
     ui.menu_button(labels::OPTIONS_MENU, |ui| {
@@ -18,8 +19,9 @@ pub fn menu(ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool) 
             }
         });
 
-        if ui.button(labels::HIGHLIGHT).clicked() {
-            // TODO Mark identical hashes
+        // TODO Mark identical hashes
+        if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
+            events.push(Action::ToggleMarkSame);
         }
 
         if check_button(ui, labels::ALWAYS_ON_TOP, always_on_top).clicked() {
@@ -28,9 +30,4 @@ pub fn menu(ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool) 
     });
 
     events
-}
-
-fn check_button(ui: &mut Ui, label: &str, is_checked: bool) -> Response {
-    let check = if is_checked { "󰄬" } else { "" };
-    ui.add(Button::new(label).right_text(check))
 }

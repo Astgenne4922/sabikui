@@ -9,7 +9,9 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
     let mut events = Vec::new();
 
     ui.horizontal(|ui| {
-        ui.style_mut().override_font_id = Some(FontId::proportional(24.0));
+        ui.style_mut().override_font_id = Some(FontId::proportional(20.0));
+        ui.spacing_mut().button_padding.x = 8.0;
+        ui.spacing_mut().item_spacing.x = 1.0;
 
         if ui
             .button(icons::SAVE_SELECTED)

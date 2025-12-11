@@ -6,7 +6,7 @@ use crate::gui::{
         constants::{labels, shortcuts},
         hashed_file::HashFunction,
     },
-    shortcut_button,
+    utils::shortcut_button,
 };
 
 pub fn open(response: &Response, algorithm_list: &[HashFunction], are_row_selected: bool) -> Vec<Action> {
