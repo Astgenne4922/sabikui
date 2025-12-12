@@ -46,6 +46,7 @@ impl Table {
 
                     TableBuilder::new(ui)
                         .striped(true)
+                        .drag_to_scroll(false)
                         .resizable(true)
                         .columns(
                             Column::remainder().at_least(100.0).clip(true).resizable(true),
