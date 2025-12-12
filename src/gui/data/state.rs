@@ -14,6 +14,7 @@ pub struct State {
     sorting_column: Option<(TableColumns, bool)>,
     always_on_top: bool,
     mark_same: bool,
+    same_hash_index: Vec<Digest>,
     selected_rows: Vec<usize>,
     last_selected: usize,
     pub to_copy: Option<String>,
@@ -34,6 +35,7 @@ impl State {
             sorting_column: None,
             always_on_top: false,
             mark_same: true,
+            same_hash_index: Vec::default(),
             selected_rows: Vec::default(),
             last_selected: Default::default(),
             to_copy: Option::default(),
@@ -68,6 +70,7 @@ impl State {
             &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
             &self.algorithm_list(),
         );
+        self.pair_same_hashes();
     }
 
     pub fn select_all(&mut self) {
@@ -111,15 +114,18 @@ impl State {
             .filter_map(|(i, file)| (!self.selected_rows.contains(&i)).then_some(file.clone()))
             .collect();
         self.deselect_all();
+        self.pair_same_hashes();
     }
 
     pub fn clear_all(&mut self) {
         self.files.clear();
         self.deselect_all();
+        self.same_hash_index.clear();
     }
 
     pub fn add_files(&mut self, files: &[PathBuf]) {
         self.files.extend(HashedFile::build_vec(files, &self.algorithm_list()));
+        self.pair_same_hashes();
     }
 
     pub fn toggle_column(&mut self, column: &TableColumns) {
@@ -163,24 +169,28 @@ impl State {
         self.sorting_column = Some((column, reverse));
     }
 
-    pub fn pair_same_hashes(&self) -> Vec<Vec<usize>> {
-        let mut pairs = Vec::new();
+    fn pair_same_hashes(&mut self) {
+        self.same_hash_index = Vec::new();
 
-        for (idx1, file1) in self.files.iter().enumerate() {
-            let mut pair = vec![idx1];
+        let alg = &self.algorithm_list()[0];
 
-            for (idx2, file2) in self.files.iter().enumerate() {
+        for file1 in &self.files {
+            let mut count = 0;
+
+            if self.same_hash_index.contains(&file1.get_digest(alg)) {
+                continue;
+            }
+
+            for file2 in &self.files {
                 if file1 == file2 {
-                    pair.push(idx2);
+                    count += 1;
                 }
             }
 
-            if pair.len() > 1 {
-                pairs.push(pair);
+            if count > 1 {
+                self.same_hash_index.push(file1.get_digest(alg));
             }
         }
-
-        pairs
     }
 }
 
@@ -204,6 +214,10 @@ impl State {
 
     pub const fn mark_same(&self) -> &bool {
         &self.mark_same
+    }
+
+    pub const fn same_hash_index(&self) -> &Vec<Digest> {
+        &self.same_hash_index
     }
 
     pub const fn selected_rows(&self) -> &Vec<usize> {

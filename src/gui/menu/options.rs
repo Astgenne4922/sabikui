@@ -19,7 +19,6 @@ pub fn menu(ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, 
             }
         });
 
-        // TODO Mark identical hashes
         if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
             events.push(Action::ToggleMarkSame);
         }

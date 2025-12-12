@@ -3,21 +3,11 @@ use egui_extras::TableRow;
 
 use crate::gui::{
     actions::Action,
-    data::{state::State, table_columns::TableColumns},
+    data::{constants::colors, state::State, table_columns::TableColumns},
     table::context_menu,
 };
 
 pub fn rows(row: &mut TableRow, columns: &[TableColumns], state: &State) -> Vec<Action> {
-    const COLORS: [Color32; 8] = [
-        Color32::CYAN,
-        Color32::GREEN,
-        Color32::LIGHT_RED,
-        Color32::BLUE,
-        Color32::MAGENTA,
-        Color32::YELLOW,
-        Color32::PURPLE,
-        Color32::ORANGE,
-    ];
     let mut events = Vec::new();
 
     let index = row.index();
@@ -25,23 +15,33 @@ pub fn rows(row: &mut TableRow, columns: &[TableColumns], state: &State) -> Vec<
 
     row.set_selected(state.selected_rows().contains(&index));
 
-    let pairs = state.pair_same_hashes();
+    let mut color_idx = None;
+    if *state.mark_same() {
+        let same = state.same_hash_index();
 
-    let mut color = None;
-    for (idx, pair) in pairs.iter().enumerate() {
-        if pair.contains(&index) {
-            color = Some(COLORS[idx % 8]);
+        for (idx, pair) in same.iter().enumerate() {
+            if *pair == file.get_digest(&state.algorithm_list()[0]) {
+                color_idx = Some(idx % 14);
+            }
         }
     }
 
     for col in columns {
         row.col(|ui| {
             ui.style_mut().interaction.selectable_labels = false;
-            if let Some(color) = color {
-                ui.colored_label(color, file.get_from_column(col));
-            } else {
-                ui.label(file.get_from_column(col));
+            if let Some(color) = color_idx.map(|idx| {
+                if ui.style().visuals.dark_mode {
+                    colors::gruvbox::dark::HIGHLIGHT[idx]
+                } else {
+                    colors::gruvbox::light::HIGHLIGHT[idx]
+                }
+            }) && !state.selected_rows().contains(&index)
+            {
+                let gapless_rect = ui.max_rect().expand2(0.5 * ui.spacing().item_spacing);
+                ui.painter().rect_filled(gapless_rect, 0.0, color);
+                ui.style_mut().visuals.widgets.noninteractive.fg_stroke.color = Color32::from_rgb(40, 40, 40);
             }
+            ui.label(file.get_from_column(col));
         });
     }
 
