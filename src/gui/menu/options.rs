@@ -27,6 +27,8 @@ pub fn menu(ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, 
         if check_button(ui, labels::ALWAYS_ON_TOP, always_on_top).clicked() {
             events.push(Action::ToggleAlwaysOnTop);
         }
+
+        egui::widgets::global_theme_preference_buttons(ui);
     });
 
     events
