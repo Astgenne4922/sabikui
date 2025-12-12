@@ -1,10 +1,4 @@
-use std::{
-    collections::{HashSet, VecDeque},
-    fs,
-    ops::RangeInclusive,
-    path::PathBuf,
-    sync::mpsc,
-};
+use std::{collections::VecDeque, fs, ops::RangeInclusive, path::PathBuf, sync::mpsc};
 
 use crate::gui::data::{
     hashed_file::{HashFunction, HashedFile},
@@ -86,7 +80,7 @@ fn explorer_paste(pasted: &str, state: &mut State) {
     state.add_files(&pasted_lines);
 }
 
-fn copy_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: &[TableColumns]) -> String {
+fn copy_selected(files: &[HashedFile], selected_rows: &[usize], columns: &[TableColumns]) -> String {
     files
         .iter()
         .enumerate()
@@ -102,7 +96,7 @@ fn copy_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: 
         .join("\n")
 }
 
-fn save_selected(files: &[HashedFile], selected_rows: &HashSet<usize>, columns: &[TableColumns]) {
+fn save_selected(files: &[HashedFile], selected_rows: &[usize], columns: &[TableColumns]) {
     if let Some(path) = &mut rfd::FileDialog::new().add_filter("csv", &["csv"]).save_file() {
         path.set_extension("csv");
         let to_save = columns
@@ -144,7 +138,7 @@ fn add_wildcard() {
     println!("ADD WILDCARD");
 }
 
-fn copy_hash(alg: &HashFunction, files: &[HashedFile], selected_rows: &HashSet<usize>) -> String {
+fn copy_hash(alg: &HashFunction, files: &[HashedFile], selected_rows: &[usize]) -> String {
     files
         .iter()
         .enumerate()

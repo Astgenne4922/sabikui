@@ -1,13 +1,9 @@
-use std::{
-    collections::{HashMap, HashSet},
-    ops::RangeInclusive,
-    path::PathBuf,
-};
+use std::{ops::RangeInclusive, path::PathBuf};
 
 use crate::{
     algorithms,
     gui::data::{
-        hashed_file::{HashFunction, HashedFile},
+        hashed_file::{Digest, HashFunction, HashedFile},
         table_columns::TableColumns,
     },
 };
@@ -16,10 +12,9 @@ pub struct State {
     files: Vec<HashedFile>,
     columns: Vec<(TableColumns, bool)>,
     sorting_column: Option<(TableColumns, bool)>,
-    algorithms: HashMap<HashFunction, bool>,
     always_on_top: bool,
     mark_same: bool,
-    selected_rows: HashSet<usize>,
+    selected_rows: Vec<usize>,
     last_selected: usize,
     pub to_copy: Option<String>,
 }
@@ -37,10 +32,9 @@ impl State {
             files: Vec::default(),
             columns: cols,
             sorting_column: None,
-            algorithms: hashes.iter().map(|h| (h.to_owned(), true)).collect(),
             always_on_top: false,
             mark_same: true,
-            selected_rows: HashSet::default(),
+            selected_rows: Vec::default(),
             last_selected: Default::default(),
             to_copy: Option::default(),
         }
@@ -55,9 +49,15 @@ impl State {
 
     pub fn algorithm_list(&self) -> Vec<HashFunction> {
         let mut active_algorithms: Vec<String> = self
-            .algorithms
+            .columns
             .iter()
-            .filter_map(|(alg, is_checked)| is_checked.then_some(alg.to_owned()))
+            .filter_map(|(col, is_checked)| {
+                if let TableColumns::Algorithms(alg) = col {
+                    is_checked.then_some(alg.clone())
+                } else {
+                    None
+                }
+            })
             .collect();
         active_algorithms.sort();
         active_algorithms
@@ -78,28 +78,24 @@ impl State {
     pub fn select_single_row(&mut self, index: usize) {
         let a = self.selected_rows.contains(&index);
         self.deselect_all();
-        if a {
-            self.selected_rows.insert(index);
+        if !a {
+            self.selected_rows.push(index);
             self.last_selected = index;
-        } else {
-            self.last_selected = 0;
         }
     }
 
     pub fn add_row_to_selection(&mut self, index: usize) {
         if self.selected_rows.contains(&index) {
-            self.selected_rows.remove(&index);
+            self.selected_rows.pop_if(|r| *r == index);
         } else {
-            self.selected_rows.insert(index);
+            self.selected_rows.push(index);
         }
         self.last_selected = index;
     }
 
     pub fn select_range(&mut self, range: RangeInclusive<usize>) {
-        self.deselect_all();
-        for i in range {
-            self.selected_rows.insert(i);
-        }
+        self.selected_rows.clear();
+        self.selected_rows.extend_from_within(range);
     }
 
     pub fn deselect_all(&mut self) {
@@ -210,7 +206,7 @@ impl State {
         &self.mark_same
     }
 
-    pub const fn selected_rows(&self) -> &HashSet<usize> {
+    pub const fn selected_rows(&self) -> &Vec<usize> {
         &self.selected_rows
     }
 
