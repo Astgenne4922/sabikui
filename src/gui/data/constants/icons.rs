@@ -1,0 +1,10 @@
+pub const SAVE_SELECTED: &str = "󰆓";
+pub const REFRESH: &str = "󰑐";
+pub const ADD_FILE: &str = "";
+pub const ADD_FOLDER: &str = "󰉗";
+pub const ADD_WILDCARD: &str = "";
+pub const SELECT_ALL: &str = "󰾂";
+pub const COPY_SELECTED: &str = "󰆏";
+pub const CLEAR_ALL: &str = "󰗨";
+pub const ASCENDING: &str = "";
+pub const DESCENDING: &str = "";

@@ -5,7 +5,7 @@ use crate::gui::{
     table::Table,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
-use egui::{Event, KeyboardShortcut};
+use egui::Event;
 use std::sync::mpsc;
 
 mod actions;
@@ -13,17 +13,6 @@ mod data;
 mod menu;
 mod table;
 mod utils;
-
-const KEYBINDS: [(&KeyboardShortcut, Action); 8] = [
-    (&shortcuts::SELECT_ALL, Action::SelectAll),
-    (&shortcuts::DESELECT_ALL, Action::DeselectAll),
-    (&shortcuts::SAVE_SELECTED, Action::SaveSelected),
-    (&shortcuts::ADD_FILE, Action::AddFiles(None)),
-    (&shortcuts::ADD_FOLDER, Action::AddFolders(None)),
-    (&shortcuts::ADD_WILDCARD, Action::AddWildcard),
-    (&shortcuts::REFRESH, Action::Refresh),
-    (&shortcuts::CLEAR_SELECTED, Action::ClearSelected),
-];
 
 pub fn run() {
     let native_options = NativeOptions::default();
@@ -93,7 +82,7 @@ impl App for Sabikui {
                 )));
             }
 
-            for (shortcut, action) in KEYBINDS {
+            for (shortcut, action) in shortcuts::KEYBINDS {
                 if i.consume_shortcut(shortcut) {
                     events.push(action);
                 }
