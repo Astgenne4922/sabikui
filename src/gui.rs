@@ -1,6 +1,6 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
-    data::{constants::shortcuts, state::State},
+    data::{constants::shortcuts, state::State, theme},
     menu::Menu,
     table::Table,
 };
@@ -51,6 +51,17 @@ impl Sabikui {
             .push("jet_brains_mono_nerd".to_owned());
 
         cc.egui_ctx.set_fonts(fonts);
+
+        cc.egui_ctx.options_mut(|opt| {
+            opt.dark_style = std::sync::Arc::new(egui::Style {
+                visuals: theme::gruvbox!(dark),
+                ..Default::default()
+            });
+            opt.light_style = std::sync::Arc::new(egui::Style {
+                visuals: theme::gruvbox!(light),
+                ..Default::default()
+            });
+        });
 
         let (sx, rx) = mpsc::channel();
 

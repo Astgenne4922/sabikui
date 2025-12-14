@@ -45,7 +45,6 @@ impl Table {
                     let columns = state.active_columns();
 
                     TableBuilder::new(ui)
-                        .striped(true)
                         .drag_to_scroll(false)
                         .resizable(true)
                         .columns(
