@@ -2915,59 +2915,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "sabikui-blake2b512"
+name = "sabikui-algs"
 version = "0.0.0"
 dependencies = [
  "base16ct",
  "blake2",
-]
-
-[[package]]
-name = "sabikui-md5"
-version = "0.0.0"
-dependencies = [
- "base16ct",
  "md-5",
-]
-
-[[package]]
-name = "sabikui-sha1"
-version = "0.0.0"
-dependencies = [
- "base16ct",
  "sha1",
-]
-
-[[package]]
-name = "sabikui-sha256"
-version = "0.0.0"
-dependencies = [
- "base16ct",
  "sha2",
-]
-
-[[package]]
-name = "sabikui-sha3-256"
-version = "0.0.0"
-dependencies = [
- "base16ct",
  "sha3",
-]
-
-[[package]]
-name = "sabikui-sha3-512"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha3",
-]
-
-[[package]]
-name = "sabikui-sha512"
-version = "0.0.0"
-dependencies = [
- "base16ct",
- "sha2",
 ]
 
 [[package]]

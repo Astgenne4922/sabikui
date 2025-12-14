@@ -30,6 +30,3 @@ resolver = "3"
 edition = "2024"
 repository = "https://github.com/Astgenne4922/sabikui"
 authors = ["Astgenne4922"]
-
-[workspace.dependencies]
-base16ct = { version = "0.3.0", features = ["alloc"] }
