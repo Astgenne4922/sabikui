@@ -72,11 +72,7 @@ impl ActionHandler {
 }
 
 fn explorer_paste(pasted: &str, state: &mut State) {
-    let pasted_lines = pasted
-        .lines()
-        .map(PathBuf::from)
-        .filter(|path| path.exists())
-        .collect::<Vec<_>>();
+    let pasted_lines: Vec<PathBuf> = pasted.lines().map(PathBuf::from).filter(|path| path.exists()).collect();
     state.add_files(&pasted_lines);
 }
 
@@ -120,7 +116,7 @@ fn add_files(new_files: Option<Vec<PathBuf>>, state: &mut State) {
     let new_files = new_files.or_else(|| rfd::FileDialog::new().pick_files());
 
     if let Some(new_files) = new_files {
-        let new_files = new_files.into_iter().filter(|f| f.is_file()).collect::<Vec<_>>();
+        let new_files: Vec<PathBuf> = new_files.into_iter().filter(|f| f.is_file()).collect();
         state.add_files(&new_files);
     }
 }

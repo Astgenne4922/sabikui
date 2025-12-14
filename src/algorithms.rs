@@ -5,7 +5,7 @@ use std::{
 };
 
 pub fn get_hash_functions() -> Vec<String> {
-    fs::read_dir("./hash_functions")
+    let mut hashes: Vec<String> = fs::read_dir("./hash_functions")
         // TODO Handle errors
         .unwrap()
         .flatten()
@@ -16,7 +16,9 @@ pub fn get_hash_functions() -> Vec<String> {
                 .to_string_lossy()
                 .to_string()
         })
-        .collect()
+        .collect();
+    hashes.sort();
+    hashes
 }
 
 pub fn one_hash_one_file(function: &str, file: &Path) -> String {
@@ -43,8 +45,5 @@ pub fn many_hash_one_file(functions: &[String], file: &Path) -> Vec<String> {
 }
 
 pub fn many_hashes_many_files(functions: &[String], files: &[PathBuf]) -> Vec<Vec<String>> {
-    functions
-        .iter()
-        .map(|hash| one_hash_many_files(hash, files))
-        .collect::<Vec<_>>()
+    functions.iter().map(|hash| one_hash_many_files(hash, files)).collect()
 }

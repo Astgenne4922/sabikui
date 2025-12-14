@@ -46,7 +46,7 @@ impl State {
         self.columns
             .iter()
             .filter_map(|(col, is_checked)| is_checked.then_some(col.clone()))
-            .collect::<Vec<_>>()
+            .collect()
     }
 
     pub fn algorithm_list(&self) -> Vec<HashFunction> {
@@ -98,7 +98,7 @@ impl State {
 
     pub fn select_range(&mut self, range: RangeInclusive<usize>) {
         self.selected_rows.clear();
-        self.selected_rows.extend_from_within(range);
+        self.selected_rows.extend(range);
     }
 
     pub fn deselect_all(&mut self) {

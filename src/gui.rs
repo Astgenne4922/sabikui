@@ -74,11 +74,7 @@ impl App for Sabikui {
 
             if !i.raw.dropped_files.is_empty() {
                 events.push(Action::AddFolders(Some(
-                    i.raw
-                        .dropped_files
-                        .iter()
-                        .map(|f| f.path.clone().unwrap())
-                        .collect::<Vec<_>>(),
+                    i.raw.dropped_files.iter().map(|f| f.path.clone().unwrap()).collect(),
                 )));
             }
 
