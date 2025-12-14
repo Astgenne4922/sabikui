@@ -6,6 +6,7 @@ use crate::gui::{actions::Action, data::state::State};
 
 mod body;
 mod context_menu;
+mod drag_selector;
 mod header;
 
 pub struct Table {
@@ -36,6 +37,10 @@ impl Table {
                     mouse_wheel: true,
                 })
                 .show(ui, |ui| {
+                    if state.drag_start.is_some() {
+                        ui.scroll_to_rect(egui::Rect::from_pos(ui.ctx().pointer_latest_pos().unwrap()), None);
+                    }
+
                     let text_height = TextStyle::Body
                         .resolve(ui.style())
                         .size
@@ -63,10 +68,42 @@ impl Table {
                                 });
                             }
                         })
-                        .body(|body| {
+                        .body(|mut body| {
+                            // FIXME drag starting point not in absolute coordinates and shifts with the scrolling
+                            let table_ui = body.ui_mut();
+                            let (painter, response) = drag_selector::setup(table_ui);
+                            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                                let rect = egui::Rect::from_pos(pointer_pos);
+                                table_ui.scroll_to_rect(rect, None);
+                            }
+
+                            let mut drag_selected_rows = Vec::new();
+
                             body.rows(text_height, state.files().len(), |mut row| {
                                 events.extend(body::rows(&mut row, &columns, state));
+                                if let (Some(pointer_pos), Some(drag_start)) =
+                                    (response.interact_pointer_pos(), state.drag_start)
+                                {
+                                    let rect = egui::Rect::from_two_pos(pointer_pos, drag_start);
+                                    if rect.intersects(row.response().interact_rect) {
+                                        drag_selected_rows.push(row.index());
+                                    }
+                                }
                             });
+
+                            if !drag_selected_rows.is_empty() {
+                                let first = *drag_selected_rows
+                                    .iter()
+                                    .min()
+                                    .expect("The vector should have at least one element");
+                                let last = *drag_selected_rows
+                                    .iter()
+                                    .max()
+                                    .expect("The vector should have at least one element");
+                                events.push(Action::SelectRowRange(first..=last));
+                            }
+
+                            events.extend(drag_selector::show(&painter, &response, state));
                         });
                 });
         });
