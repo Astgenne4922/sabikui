@@ -1,6 +1,6 @@
 use std::{ops::RangeInclusive, path::PathBuf};
 
-use egui::Pos2;
+use egui::{Pos2, Vec2};
 
 use crate::{
     algorithms,
@@ -20,7 +20,8 @@ pub struct State {
     selected_rows: Vec<usize>,
     last_selected: usize,
     pub to_copy: Option<String>,
-    pub drag_start: Option<Pos2>,
+    pub drag_start: Option<(Pos2, Vec2)>,
+    pub drag_start_index: Option<usize>,
 }
 
 impl State {
@@ -43,6 +44,7 @@ impl State {
             last_selected: Default::default(),
             to_copy: Option::default(),
             drag_start: None,
+            drag_start_index: None,
         }
     }
 

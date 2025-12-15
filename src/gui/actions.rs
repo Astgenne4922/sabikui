@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, fs, ops::RangeInclusive, path::PathBuf, sync::mpsc};
 
-use egui::Pos2;
+use egui::{Pos2, Vec2};
 
 use crate::gui::data::{
     hashed_file::{HashFunction, HashedFile},
@@ -29,7 +29,8 @@ pub enum Action {
     SelectSingleRow(usize),
     AddRowToSelection(usize),
     SelectRowRange(RangeInclusive<usize>),
-    StartDrag(Pos2),
+    StartDragSelection(usize),
+    StartDrag(Pos2, Vec2),
     EndDrag,
 }
 
@@ -70,8 +71,12 @@ impl ActionHandler {
                 Action::SelectSingleRow(index) => state.select_single_row(index),
                 Action::AddRowToSelection(index) => state.add_row_to_selection(index),
                 Action::SelectRowRange(range) => state.select_range(range),
-                Action::StartDrag(pos2) => state.drag_start = Some(pos2),
-                Action::EndDrag => state.drag_start = None,
+                Action::StartDrag(start, offset) => state.drag_start = Some((start, offset)),
+                Action::EndDrag => {
+                    state.drag_start = None;
+                    state.drag_start_index = None;
+                }
+                Action::StartDragSelection(index) => state.drag_start_index = Some(index),
             }
         }
     }

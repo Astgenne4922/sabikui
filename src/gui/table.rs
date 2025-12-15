@@ -27,8 +27,9 @@ impl Table {
                 &state.algorithm_list(),
                 !state.selected_rows().is_empty(),
             ));
+            let (mut painter, drag_response) = drag_selector::setup(ui);
 
-            ScrollArea::horizontal()
+            let scroll_output = ScrollArea::horizontal()
                 .stick_to_bottom(true)
                 .auto_shrink(false)
                 .scroll_source(egui::scroll_area::ScrollSource {
@@ -37,8 +38,9 @@ impl Table {
                     mouse_wheel: true,
                 })
                 .show(ui, |ui| {
-                    if state.drag_start.is_some() {
-                        ui.scroll_to_rect(egui::Rect::from_pos(ui.ctx().pointer_latest_pos().unwrap()), None);
+                    if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
+                        let rect = egui::Rect::from_pos(pointer_pos);
+                        ui.scroll_to_rect(rect, None);
                     }
 
                     let text_height = TextStyle::Body
@@ -69,43 +71,54 @@ impl Table {
                             }
                         })
                         .body(|mut body| {
-                            // FIXME drag starting point not in absolute coordinates and shifts with the scrolling
-                            let table_ui = body.ui_mut();
-                            let (painter, response) = drag_selector::setup(table_ui);
-                            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                            // FIXME drag not working when not on rows
+                            painter = body.ui_mut().painter().clone();
+                            if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
                                 let rect = egui::Rect::from_pos(pointer_pos);
-                                table_ui.scroll_to_rect(rect, None);
+                                body.ui_mut().scroll_to_rect(rect, None);
                             }
 
-                            let mut drag_selected_rows = Vec::new();
+                            let mut drag_end_index = None;
 
                             body.rows(text_height, state.files().len(), |mut row| {
                                 events.extend(body::rows(&mut row, &columns, state));
-                                if let (Some(pointer_pos), Some(drag_start)) =
-                                    (response.interact_pointer_pos(), state.drag_start)
+                                if let Some(pointer_pos) = drag_response.interact_pointer_pos()
+                                    && state.drag_start_index.is_some()
                                 {
-                                    let rect = egui::Rect::from_two_pos(pointer_pos, drag_start);
+                                    let rect = egui::Rect::from_pos(pointer_pos);
                                     if rect.intersects(row.response().interact_rect) {
-                                        drag_selected_rows.push(row.index());
+                                        drag_end_index = Some(row.index());
                                     }
+                                }
+
+                                if drag_response.drag_started() && row.response().contains_pointer() {
+                                    events.push(Action::StartDragSelection(row.index()));
                                 }
                             });
 
-                            if !drag_selected_rows.is_empty() {
-                                let first = *drag_selected_rows
-                                    .iter()
-                                    .min()
-                                    .expect("The vector should have at least one element");
-                                let last = *drag_selected_rows
-                                    .iter()
-                                    .max()
-                                    .expect("The vector should have at least one element");
-                                events.push(Action::SelectRowRange(first..=last));
+                            if let (Some(drag_start_index), Some(drag_end_index)) =
+                                (state.drag_start_index, drag_end_index)
+                            {
+                                let range = if drag_start_index < drag_end_index {
+                                    drag_start_index..=drag_end_index
+                                } else {
+                                    drag_end_index..=drag_start_index
+                                };
+                                events.push(Action::SelectRowRange(range));
                             }
-
-                            events.extend(drag_selector::show(&painter, &response, state));
-                        });
+                        })
+                        .state
+                        .offset
+                        .y
                 });
+
+            events.extend(drag_selector::show(
+                &painter,
+                &drag_response,
+                state,
+                scroll_output.state.offset.x,
+                scroll_output.inner,
+            ));
         });
 
         for event in events {
