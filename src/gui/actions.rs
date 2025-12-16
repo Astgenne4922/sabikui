@@ -29,7 +29,8 @@ pub enum Action {
     SelectSingleRow(usize),
     AddRowToSelection(usize),
     SelectRowRange(RangeInclusive<usize>),
-    StartDragSelection(usize),
+    SetDragSelectionIndex(usize),
+    ResetDragSelectionIndex,
     StartDrag(Pos2, Vec2),
     EndDrag,
 }
@@ -76,7 +77,11 @@ impl ActionHandler {
                     state.drag_start = None;
                     state.drag_start_index = None;
                 }
-                Action::StartDragSelection(index) => state.drag_start_index = Some(index),
+                Action::SetDragSelectionIndex(index) => state.drag_start_index = Some(index),
+                Action::ResetDragSelectionIndex => {
+                    state.drag_start_index = None;
+                    state.deselect_all();
+                }
             }
         }
     }

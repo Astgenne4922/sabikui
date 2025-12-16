@@ -27,7 +27,10 @@ impl Table {
                 &state.algorithm_list(),
                 !state.selected_rows().is_empty(),
             ));
-            let (mut painter, drag_response) = drag_selector::setup(ui);
+
+            ui.interact(ui.min_rect(), ui.unique_id(), Sense::click_and_drag());
+            let drag_response = ui.response();
+            let mut painter = None;
 
             let scroll_output = ScrollArea::horizontal()
                 .stick_to_bottom(true)
@@ -71,49 +74,32 @@ impl Table {
                             }
                         })
                         .body(|mut body| {
-                            // FIXME drag not working when not on rows
-                            painter = body.ui_mut().painter().clone();
+                            painter = Some(body.ui_mut().painter().clone());
                             if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
                                 let rect = egui::Rect::from_pos(pointer_pos);
                                 body.ui_mut().scroll_to_rect(rect, None);
                             }
 
-                            let mut drag_end_index = None;
+                            let mut visible_rows = Vec::new();
 
                             body.rows(text_height, state.files().len(), |mut row| {
                                 events.extend(body::rows(&mut row, &columns, state));
-                                if let Some(pointer_pos) = drag_response.interact_pointer_pos()
-                                    && state.drag_start_index.is_some()
-                                {
-                                    let rect = egui::Rect::from_pos(pointer_pos);
-                                    if rect.intersects(row.response().interact_rect) {
-                                        drag_end_index = Some(row.index());
-                                    }
-                                }
-
-                                if drag_response.drag_started() && row.response().contains_pointer() {
-                                    events.push(Action::StartDragSelection(row.index()));
-                                }
+                                visible_rows.push((row.response(), row.index()));
                             });
 
-                            if let (Some(drag_start_index), Some(drag_end_index)) =
-                                (state.drag_start_index, drag_end_index)
-                            {
-                                let range = if drag_start_index < drag_end_index {
-                                    drag_start_index..=drag_end_index
-                                } else {
-                                    drag_end_index..=drag_start_index
-                                };
-                                events.push(Action::SelectRowRange(range));
-                            }
+                            events.extend(drag_selector::handle(&visible_rows, &drag_response, state));
                         })
                         .state
                         .offset
                         .y
                 });
 
+            if ui.response().clicked() {
+                events.push(Action::DeselectAll);
+            }
+
             events.extend(drag_selector::show(
-                &painter,
+                &painter.expect("The painter should always be initialized by the table body"),
                 &drag_response,
                 state,
                 scroll_output.state.offset.x,
