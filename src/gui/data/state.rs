@@ -76,6 +76,14 @@ impl State {
             &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
             &self.algorithm_list(),
         );
+
+        if let Some((column, reverse)) = &self.sorting_column {
+            self.files.sort_by_key(|f| f.get_from_column(column));
+            if *reverse {
+                self.files.reverse();
+            }
+        }
+
         self.pair_same_hashes();
     }
 
@@ -131,6 +139,14 @@ impl State {
 
     pub fn add_files(&mut self, files: &[PathBuf]) {
         self.files.extend(HashedFile::build_vec(files, &self.algorithm_list()));
+
+        if let Some((column, reverse)) = &self.sorting_column {
+            self.files.sort_by_key(|f| f.get_from_column(column));
+            if *reverse {
+                self.files.reverse();
+            }
+        }
+
         self.pair_same_hashes();
     }
 
