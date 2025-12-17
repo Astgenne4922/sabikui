@@ -1,6 +1,6 @@
-use std::{ops::RangeInclusive, path::PathBuf};
+use std::{ops::RangeInclusive, path::PathBuf, sync::Arc};
 
-use egui::{Pos2, Vec2};
+use egui::{Pos2, Vec2, mutex::RwLock};
 
 use crate::{
     algorithms,
@@ -9,6 +9,13 @@ use crate::{
         table_columns::TableColumns,
     },
 };
+
+#[derive(PartialEq, Eq, Hash)]
+pub enum OpenWindow {
+    None,
+    Help,
+    ChooseColunms,
+}
 
 pub struct State {
     files: Vec<HashedFile>,
@@ -22,6 +29,7 @@ pub struct State {
     pub to_copy: Option<String>,
     pub drag_start: Option<(Pos2, Vec2)>,
     pub drag_start_index: Option<usize>,
+    pub open_extra_window: Arc<RwLock<OpenWindow>>,
 }
 
 impl State {
@@ -45,6 +53,7 @@ impl State {
             to_copy: Option::default(),
             drag_start: None,
             drag_start_index: None,
+            open_extra_window: Arc::new(RwLock::new(OpenWindow::None)),
         }
     }
 

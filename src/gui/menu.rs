@@ -39,7 +39,7 @@ impl Menu {
                         *state.always_on_top(),
                         *state.mark_same(),
                     ));
-                    help::menu(ui);
+                    help::menu(ui, state);
                 });
                 events.extend(tool::bar(ui));
             });
