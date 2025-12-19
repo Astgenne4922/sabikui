@@ -105,6 +105,22 @@ path = "src/bin/jh/jh384.rs"
 name = "jh-512"
 path = "src/bin/jh/jh512.rs"
 
+# Keccak Family
+[[bin]]
+name = "keccak-224"
+path = "src/bin/sha3/keccak/keccak224.rs"
+
+[[bin]]
+name = "keccak-256"
+path = "src/bin/sha3/keccak/keccak256.rs"
+
+[[bin]]
+name = "keccak-384"
+path = "src/bin/sha3/keccak/keccak384.rs"
+
+[[bin]]
+name = "keccak-512"
+path = "src/bin/sha3/keccak/keccak512.rs"
 
 # MD2
 [[bin]]
