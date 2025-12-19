@@ -1,4 +1,7 @@
-use crate::gui::{actions::Action, data::state::State};
+use crate::gui::{
+    actions::Action,
+    data::state::{OpenWindow, State},
+};
 use egui::{MenuBar, TopBottomPanel};
 use std::sync::mpsc;
 
@@ -28,6 +31,10 @@ impl Menu {
         let mut events = Vec::new();
 
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
+            if *state.open_extra_window.read() != OpenWindow::None {
+                ui.disable();
+            }
+
             ui.vertical(|ui| {
                 MenuBar::new().ui(ui, |ui| {
                     events.extend(file::menu(ui));

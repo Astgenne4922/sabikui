@@ -10,10 +10,11 @@ use crate::{
     },
 };
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum OpenWindow {
     None,
-    Help,
+    About,
+    Keybinds,
     ChooseColunms,
 }
 

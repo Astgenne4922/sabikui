@@ -2,7 +2,10 @@ use egui::{CentralPanel, ScrollArea, Sense, TextStyle};
 use egui_extras::{Column, TableBuilder};
 use std::sync::mpsc;
 
-use crate::gui::{actions::Action, data::state::State};
+use crate::gui::{
+    actions::Action,
+    data::state::{OpenWindow, State},
+};
 
 mod body;
 mod context_menu;
@@ -22,6 +25,10 @@ impl Table {
         let mut events = Vec::new();
 
         CentralPanel::default().show(ctx, |ui| {
+            if *state.open_extra_window.read() != OpenWindow::None {
+                ui.disable();
+            }
+
             events.extend(context_menu::open(
                 &ui.interact(ui.min_rect(), ui.unique_id(), Sense::click()),
                 &state.algorithm_list(),
