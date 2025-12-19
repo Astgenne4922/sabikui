@@ -14,6 +14,7 @@ belt-hash = "0.1.1"
 fsb = "0.1.3"
 gost94 = "0.10.4"
 groestl = "0.10.1"
+jh = "0.1.0"
 md2 = "0.10.2"
 md4 = "0.10.2"
 sha2 = "0.10.9"
@@ -82,6 +83,23 @@ path = "src/bin/groestl/groestl384.rs"
 [[bin]]
 name = "groestl-512"
 path = "src/bin/groestl/groestl512.rs"
+
+# JH Family
+[[bin]]
+name = "jh-224"
+path = "src/bin/jh/jh224.rs"
+
+[[bin]]
+name = "jh-256"
+path = "src/bin/jh/jh256.rs"
+
+[[bin]]
+name = "jh-384"
+path = "src/bin/jh/jh384.rs"
+
+[[bin]]
+name = "jh-512"
+path = "src/bin/jh/jh512.rs"
 
 
 # MD2
