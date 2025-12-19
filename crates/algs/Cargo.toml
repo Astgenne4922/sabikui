@@ -8,6 +8,7 @@ authors.workspace = true
 edition.workspace = true
 
 [dependencies]
+blake2 = "0.10.6"
 ascon-hash = "0.3.1"
 belt-hash = "0.1.1"
 sha2 = "0.10.9"
@@ -22,6 +23,15 @@ path = "src/bin/ascon.rs"
 [[bin]]
 name = "belt"
 path = "src/bin/belt.rs"
+
+# Blake2 Family
+[[bin]]
+name = "blake2s256"
+path = "src/bin/blake2/blake2s256.rs"
+
+[[bin]]
+name = "blake2b512"
+path = "src/bin/blake2/blake2b512.rs"
 
 
 # MD5
