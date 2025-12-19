@@ -31,4 +31,4 @@ pub const ALWAYS_ON_TOP: &str = "Always on Top";
 
 pub const HELP_MENU: &str = "Help";
 pub const ABOUT: &str = "About";
-pub const GITHUB: &str = "Github Page";
+pub const KEYBINDS: &str = "Keybinds";
