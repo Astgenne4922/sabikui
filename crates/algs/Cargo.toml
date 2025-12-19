@@ -12,6 +12,7 @@ blake2 = "0.10.6"
 ascon-hash = "0.3.1"
 belt-hash = "0.1.1"
 gost94 = "0.10.4"
+md2 = "0.10.2"
 sha2 = "0.10.9"
 sha3 = "0.10.8"
 
@@ -39,6 +40,12 @@ path = "src/bin/blake2/blake2b512.rs"
 [[bin]]
 name = "gost94"
 path = "src/bin/gost94.rs"
+
+
+# MD2
+[[bin]]
+name = "md2"
+path = "src/bin/md2.rs"
 
 
 # MD5
