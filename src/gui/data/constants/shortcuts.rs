@@ -2,9 +2,9 @@ use egui::{Key, KeyboardShortcut, Modifiers};
 
 use crate::gui::actions::Action;
 
-pub const ADD_FILE: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F2);
-pub const ADD_FOLDER: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F3);
-pub const ADD_WILDCARD: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F4);
+pub const ADD_FILE: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F1);
+pub const ADD_FOLDER: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F2);
+pub const ADD_WILDCARD: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F3);
 pub const SAVE_SELECTED: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::S);
 pub const CLEAR_ALL: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMMAND, Key::X);
 pub const CLEAR_SELECTED: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::Delete);
