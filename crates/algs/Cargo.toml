@@ -143,13 +143,31 @@ path = "src/bin/ripemd/ripemd320.rs"
 name = "sha1"
 path = "src/bin/sha1.rs"
 
+# SHA2 Family
 [[bin]]
-name = "sha256"
-path = "src/bin/sha256.rs"
+name = "sha-224"
+path = "src/bin/sha2/sha224.rs"
 
 [[bin]]
-name = "sha512"
-path = "src/bin/sha512.rs"
+name = "sha-256"
+path = "src/bin/sha2/sha256.rs"
+
+[[bin]]
+name = "sha-384"
+path = "src/bin/sha2/sha384.rs"
+
+[[bin]]
+name = "sha-512"
+path = "src/bin/sha2/sha512.rs"
+
+[[bin]]
+name = "sha-512_224"
+path = "src/bin/sha2/sha512_224.rs"
+
+[[bin]]
+name = "sha-512_256"
+path = "src/bin/sha2/sha512_256.rs"
+
 
 [[bin]]
 name = "sha3-256"
