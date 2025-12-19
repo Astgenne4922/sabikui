@@ -17,6 +17,7 @@ groestl = "0.10.1"
 jh = "0.1.0"
 md2 = "0.10.2"
 md4 = "0.10.2"
+ripemd = "0.1.3"
 sha2 = "0.10.9"
 sha3 = "0.10.8"
 sm3 = "0.4.2"
@@ -116,6 +117,23 @@ path = "src/bin/md4.rs"
 [[bin]]
 name = "md5"
 path = "src/bin/md5.rs"
+
+# RIPEMD Family
+[[bin]]
+name = "ripemd-128"
+path = "src/bin/ripemd/ripemd128.rs"
+
+[[bin]]
+name = "ripemd-160"
+path = "src/bin/ripemd/ripemd160.rs"
+
+[[bin]]
+name = "ripemd-256"
+path = "src/bin/ripemd/ripemd256.rs"
+
+[[bin]]
+name = "ripemd-320"
+path = "src/bin/ripemd/ripemd320.rs"
 
 # SHA1
 [[bin]]
