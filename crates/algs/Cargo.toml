@@ -168,13 +168,22 @@ path = "src/bin/sha2/sha512_224.rs"
 name = "sha-512_256"
 path = "src/bin/sha2/sha512_256.rs"
 
+# SHA3 Family
+[[bin]]
+name = "sha3-224"
+path = "src/bin/sha3/sha3-224.rs"
 
 [[bin]]
 name = "sha3-256"
-path = "src/bin/sha3-256.rs"
+path = "src/bin/sha3/sha3-256.rs"
+
+[[bin]]
+name = "sha3-384"
+path = "src/bin/sha3/sha3-384.rs"
 
 [[bin]]
 name = "sha3-512"
+path = "src/bin/sha3/sha3-512.rs"
 
 # Shabal Family
 [[bin]]
