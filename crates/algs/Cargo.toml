@@ -16,6 +16,7 @@ md2 = "0.10.2"
 md4 = "0.10.2"
 sha2 = "0.10.9"
 sha3 = "0.10.8"
+sm3 = "0.4.2"
 
 # Ascon-Hash
 [[bin]]
@@ -80,5 +81,9 @@ name = "sha3-512"
 path = "src/bin/sha3-512.rs"
 
 [[bin]]
-name = "blake2b512"
-path = "src/bin/blake2b512.rs"
+
+# SM3
+[[bin]]
+name = "sm3"
+path = "src/bin/sm3.rs"
+
