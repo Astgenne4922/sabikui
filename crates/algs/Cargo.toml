@@ -17,6 +17,7 @@ md4 = "0.10.2"
 sha2 = "0.10.9"
 sha3 = "0.10.8"
 sm3 = "0.4.2"
+whirlpool = "0.10.4"
 
 # Ascon-Hash
 [[bin]]
@@ -87,3 +88,8 @@ path = "src/bin/sha3-512.rs"
 name = "sm3"
 path = "src/bin/sm3.rs"
 
+
+# Whirlpool
+[[bin]]
+name = "whirlpool"
+path = "src/bin/whirlpool.rs"
