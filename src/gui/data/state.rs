@@ -20,7 +20,7 @@ pub enum OpenWindow {
 
 pub struct State {
     files: Vec<HashedFile>,
-    columns: Vec<(TableColumns, bool)>,
+    pub columns: Vec<(TableColumns, bool)>,
     sorting_column: Option<(TableColumns, bool)>,
     always_on_top: bool,
     mark_same: bool,
@@ -37,7 +37,7 @@ impl State {
     pub fn new() -> Self {
         let hashes = algorithms::get_hash_functions();
         let mut cols = vec![(TableColumns::Path, true), (TableColumns::FileName, true)];
-        cols.extend(hashes.iter().map(|h| (TableColumns::Algorithms(h.to_owned()), true)));
+        cols.extend(hashes.iter().map(|h| (TableColumns::Algorithms(h.to_owned()), false)));
         cols.push((TableColumns::FileSize, true));
         cols.push((TableColumns::LastEdit, true));
         cols.push((TableColumns::Extension, true));

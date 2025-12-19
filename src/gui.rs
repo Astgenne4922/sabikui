@@ -90,7 +90,7 @@ impl App for Sabikui {
             ctx.send_viewport_cmd_to(ViewportId::from_hash_of(open_window), ViewportCommand::Focus);
         }
 
-        self.menu.show(ctx, &self.state);
+        self.menu.show(ctx, &mut self.state);
         self.table.show(ctx, &self.state);
 
         ctx.input_mut(|i| {

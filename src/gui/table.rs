@@ -1,4 +1,4 @@
-use egui::{CentralPanel, ScrollArea, Sense, TextStyle};
+use egui::{CentralPanel, ScrollArea, Sense, TextStyle, style::ScrollStyle};
 use egui_extras::{Column, TableBuilder};
 use std::sync::mpsc;
 
@@ -39,6 +39,7 @@ impl Table {
             let drag_response = ui.response();
             let mut painter = None;
 
+            ui.spacing_mut().scroll = ScrollStyle::solid();
             let scroll_output = ScrollArea::horizontal()
                 .stick_to_bottom(true)
                 .auto_shrink(false)

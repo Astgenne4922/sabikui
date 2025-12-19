@@ -21,7 +21,7 @@ impl Menu {
         Self { message_sender }
     }
 
-    pub fn show(&self, ctx: &egui::Context, state: &State) {
+    pub fn show(&self, ctx: &egui::Context, state: &mut State) {
         if *state.always_on_top() {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
         } else {
@@ -42,9 +42,10 @@ impl Menu {
                     events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
                     events.extend(options::menu(
                         ui,
-                        state.columns(),
+                        &state.columns().clone(),
                         *state.always_on_top(),
                         *state.mark_same(),
+                        state,
                     ));
                     help::menu(ui, state);
                 });

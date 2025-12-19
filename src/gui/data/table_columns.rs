@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::gui::data::{constants::labels, hashed_file::HashFunction};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum TableColumns {
     Path,
     FileName,
