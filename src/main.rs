@@ -20,14 +20,13 @@ fn main() {
         functions.retain(|a| algorithms.contains(a));
     }
 
-    if functions.is_empty() {
-        println!("Algorithm names not supported/recognized");
-
-        return;
-    }
-
     match args.input {
         Some(inputs) => {
+            if functions.is_empty() {
+                println!("Algorithm names not supported/recognized");
+
+                return;
+            }
             cli::run(inputs, &functions);
         }
         None => gui::run(),
