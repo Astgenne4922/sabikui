@@ -1,6 +1,9 @@
-use egui::{Button, Context, KeyboardShortcut, ModifierNames, Response, Ui, Vec2, ViewportClass};
+use egui::{Button, KeyboardShortcut, ModifierNames, Response, Ui, Vec2};
 
-use crate::gui::data::{constants::icons, state::OpenWindow, table_columns::TableColumns};
+use crate::gui::{
+    actions::Action,
+    data::{constants::icons, state::OpenWindow, table_columns::TableColumns},
+};
 
 pub fn shortcut_button(ui: &mut Ui, label: &str, shortcut: KeyboardShortcut) -> Response {
     ui.add(Button::new(label).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))
@@ -31,12 +34,10 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
 }
 
 pub fn open_external_window(
-    ui: &Ui,
-    window_type: OpenWindow,
-    size: impl Into<Vec2>,
-    viewport_ui_cb: impl Fn(&Context, ViewportClass) + Send + Sync + 'static,
-) {
-    ui.ctx().show_viewport_deferred(
+    ui: &Ui, window_type: OpenWindow, size: impl Into<Vec2>, add_content: &impl Fn(&mut Ui) -> Option<Vec<Action>>,
+) -> Vec<Action> {
+    let mut events = Vec::new();
+    ui.ctx().show_viewport_immediate(
         egui::ViewportId::from_hash_of(window_type),
         egui::ViewportBuilder::default()
             .with_maximize_button(false)
@@ -46,6 +47,19 @@ pub fn open_external_window(
             .with_taskbar(false)
             .with_title("Sabikui")
             .with_resizable(false),
-        viewport_ui_cb,
+        |ctx, class| {
+            if class != egui::ViewportClass::Embedded {
+                let inner_events = egui::CentralPanel::default().show(ctx, add_content).inner;
+                if let Some(inner_events) = inner_events {
+                    events.extend(inner_events);
+                }
+            }
+
+            if ctx.input(|i| i.viewport().close_requested()) {
+                events.push(Action::CloseExternalWindow);
+            }
+        },
     );
+
+    events
 }

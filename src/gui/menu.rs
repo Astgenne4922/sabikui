@@ -21,7 +21,7 @@ impl Menu {
         Self { message_sender }
     }
 
-    pub fn show(&self, ctx: &egui::Context, state: &mut State) {
+    pub fn show(&self, ctx: &egui::Context, state: &State) {
         if *state.always_on_top() {
             ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
         } else {
@@ -31,7 +31,7 @@ impl Menu {
         let mut events = Vec::new();
 
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            if *state.open_extra_window.read() != OpenWindow::None {
+            if state.open_extra_window != OpenWindow::None {
                 ui.disable();
             }
 
@@ -42,12 +42,12 @@ impl Menu {
                     events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
                     events.extend(options::menu(
                         ui,
-                        &state.columns().clone(),
+                        state.columns(),
                         *state.always_on_top(),
                         *state.mark_same(),
                         state,
                     ));
-                    help::menu(ui, state);
+                    events.extend(help::menu(ui, state));
                 });
                 events.extend(tool::bar(ui));
             });

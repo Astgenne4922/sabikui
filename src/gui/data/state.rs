@@ -1,6 +1,6 @@
-use std::{ops::RangeInclusive, path::PathBuf, sync::Arc};
+use std::{ops::RangeInclusive, path::PathBuf};
 
-use egui::{Pos2, Vec2, mutex::RwLock};
+use egui::{Pos2, Vec2};
 
 use crate::{
     algorithms,
@@ -20,7 +20,7 @@ pub enum OpenWindow {
 
 pub struct State {
     files: Vec<HashedFile>,
-    pub columns: Vec<(TableColumns, bool)>,
+    columns: Vec<(TableColumns, bool)>,
     sorting_column: Option<(TableColumns, bool)>,
     always_on_top: bool,
     mark_same: bool,
@@ -30,7 +30,7 @@ pub struct State {
     pub to_copy: Option<String>,
     pub drag_start: Option<(Pos2, Vec2)>,
     pub drag_start_index: Option<usize>,
-    pub open_extra_window: Arc<RwLock<OpenWindow>>,
+    pub open_extra_window: OpenWindow,
 }
 
 impl State {
@@ -54,7 +54,7 @@ impl State {
             to_copy: Option::default(),
             drag_start: None,
             drag_start_index: None,
-            open_extra_window: Arc::new(RwLock::new(OpenWindow::None)),
+            open_extra_window: OpenWindow::None,
         }
     }
 
@@ -158,6 +158,10 @@ impl State {
         }
 
         self.pair_same_hashes();
+    }
+
+    pub fn update_column_order(&mut self, from: usize, to: usize) {
+        egui_dnd::utils::shift_vec(from, to, &mut self.columns);
     }
 
     pub fn toggle_column(&mut self, column: &TableColumns) {

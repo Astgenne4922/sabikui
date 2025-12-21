@@ -1,10 +1,11 @@
 use std::{collections::VecDeque, fs, ops::RangeInclusive, path::PathBuf, sync::mpsc};
 
 use egui::{Pos2, Vec2};
+use egui_dnd::DragUpdate;
 
 use crate::gui::data::{
     hashed_file::{HashFunction, HashedFile},
-    state::State,
+    state::{OpenWindow, State},
     table_columns::TableColumns,
 };
 
@@ -33,6 +34,9 @@ pub enum Action {
     ResetDragSelectionIndex,
     StartDrag(Pos2, Vec2),
     EndDrag,
+    DragColumn(DragUpdate),
+    CloseExternalWindow,
+    OpenExternalWindow(OpenWindow),
 }
 
 pub struct ActionHandler {
@@ -82,6 +86,9 @@ impl ActionHandler {
                     state.drag_start_index = None;
                     state.deselect_all();
                 }
+                Action::DragColumn(drag_update) => state.update_column_order(drag_update.from, drag_update.to),
+                Action::CloseExternalWindow => state.open_extra_window = OpenWindow::None,
+                Action::OpenExternalWindow(open_window) => state.open_extra_window = open_window,
             }
         }
     }

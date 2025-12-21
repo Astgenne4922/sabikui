@@ -1,4 +1,4 @@
-use egui::{ModifierNames, Ui};
+use egui::{ModifierNames, RichText, Ui};
 
 use crate::gui::{
     actions::Action,
@@ -12,63 +12,51 @@ use crate::gui::{
     utils::open_external_window,
 };
 
-pub fn menu(ui: &mut Ui, state: &State) {
+pub fn menu(ui: &mut Ui, state: &State) -> Vec<Action> {
+    let mut events = Vec::new();
     ui.menu_button(labels::HELP_MENU, |ui| {
         if ui.button(labels::ABOUT).clicked() {
-            *state.open_extra_window.write() = OpenWindow::About;
+            events.push(Action::OpenExternalWindow(OpenWindow::About));
         }
         if ui.button(labels::KEYBINDS).clicked() {
-            *state.open_extra_window.write() = OpenWindow::Keybinds;
+            events.push(Action::OpenExternalWindow(OpenWindow::Keybinds));
         }
     });
 
-    let open_window = *state.open_extra_window.read();
-    match open_window {
+    match state.open_extra_window {
         OpenWindow::About => {
-            let show_deferred_viewport = state.open_extra_window.clone();
-            open_external_window(ui, OpenWindow::About, [450.0, 75.0], move |ctx, class| {
-                if class == egui::ViewportClass::Deferred {
-                    egui::CentralPanel::default().show(ctx, about);
-
-                    if ctx.input(|i| i.viewport().close_requested()) {
-                        *show_deferred_viewport.write() = OpenWindow::None;
-                    }
-                }
-            });
+            events.extend(open_external_window(ui, OpenWindow::About, [300.0, 100.0], &|ui| {
+                about(ui);
+                None
+            }));
         }
         OpenWindow::Keybinds => {
-            let show_deferred_viewport = state.open_extra_window.clone();
-            open_external_window(ui, OpenWindow::Keybinds, [200.0, 250.0], move |ctx, class| {
-                if class == egui::ViewportClass::Deferred {
-                    egui::CentralPanel::default().show(ctx, |ui| {
-                        egui::Grid::new(OpenWindow::Keybinds).num_columns(2).show(ui, keybinds)
-                    });
-
-                    if ctx.input(|i| i.viewport().close_requested()) {
-                        *show_deferred_viewport.write() = OpenWindow::None;
-                    }
-                }
-            });
+            events.extend(open_external_window(ui, OpenWindow::Keybinds, [250.0, 310.0], &|ui| {
+                egui::Grid::new(OpenWindow::Keybinds).num_columns(2).show(ui, keybinds);
+                None
+            }));
         }
         _ => {}
     }
+
+    events
 }
 
 fn about(ui: &mut Ui) {
     ui.vertical_centered_justified(|ui| {
-        ui.label(format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")));
-        ui.label(format!("Author: {}", env!("CARGO_PKG_AUTHORS")));
-        ui.label(format!("Github Repo: {}", env!("CARGO_PKG_REPOSITORY")));
+        ui.heading(format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")));
+        ui.heading(format!("By {} with 󰋑", env!("CARGO_PKG_AUTHORS")));
+        ui.hyperlink_to(RichText::new("Github Repo").heading(), env!("CARGO_PKG_REPOSITORY"));
     });
 }
 
 fn keybinds(ui: &mut Ui) {
-    ui.label(labels::COPY_SELECTED);
-    ui.label(shortcuts::COPY_SELECTED.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
+    ui.heading(labels::COPY_SELECTED);
+    ui.heading(shortcuts::COPY_SELECTED.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
     ui.end_row();
 
-    ui.label(labels::EXPLORER_PASTE);
-    ui.label(shortcuts::EXPLORER_PASTE.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
+    ui.heading(labels::EXPLORER_PASTE);
+    ui.heading(shortcuts::EXPLORER_PASTE.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
     ui.end_row();
 
     for (shortcut, action) in KEYBINDS {
@@ -83,12 +71,12 @@ fn keybinds(ui: &mut Ui) {
             Action::AddWildcard => labels::ADD_WILDCARD,
             _ => unreachable!(),
         };
-        ui.label(label);
-        ui.label(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
+        ui.heading(label);
+        ui.heading(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
         ui.end_row();
     }
 
-    ui.label(labels::CLEAR_ALL);
-    ui.label(shortcuts::CLEAR_ALL.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
+    ui.heading(labels::CLEAR_ALL);
+    ui.heading(shortcuts::CLEAR_ALL.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
     ui.end_row();
 }

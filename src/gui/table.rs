@@ -25,7 +25,7 @@ impl Table {
         let mut events = Vec::new();
 
         CentralPanel::default().show(ctx, |ui| {
-            if *state.open_extra_window.read() != OpenWindow::None {
+            if state.open_extra_window != OpenWindow::None {
                 ui.disable();
             }
 
