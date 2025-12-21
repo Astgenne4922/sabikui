@@ -1,38 +1,25 @@
-use egui::{Color32, Frame, Id, ScrollArea, Ui, style::ScrollStyle};
+use egui::{Id, ScrollArea, Ui, style::ScrollStyle};
 
 use crate::gui::{
     actions::Action,
-    data::{constants::labels, state::State, table_columns::TableColumns},
-    utils::check_button,
+    data::{
+        constants::labels,
+        state::{OpenWindow, State},
+        table_columns::TableColumns,
+    },
+    utils::{check_button, open_external_window},
 };
 
 pub fn menu(
-    ui: &mut Ui,
-    columns: &[(TableColumns, bool)],
-    always_on_top: bool,
-    mark_same: bool,
-    state: &mut State,
+    ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, mark_same: bool, state: &State,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
     ui.menu_button(labels::OPTIONS_MENU, |ui| {
         // TODO Options Columns
-        ui.menu_button(labels::CHOOSE_COLUMNS, |ui| {
-            ui.spacing_mut().scroll = ScrollStyle::solid();
-            ScrollArea::vertical().show(ui, |ui| {
-                let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show(
-                    state.columns.iter(),
-                    |ui, column, handle, _state| {
-                        handle.ui(ui, |ui| {
-                            if check_button(ui, &column.0.to_string(), column.1).clicked() {
-                                events.push(Action::ToggleColumn(column.0.clone()));
-                            }
-                        });
-                    },
-                );
-                response.update_vec(&mut state.columns);
-            });
-        });
+        if ui.button(labels::CHOOSE_COLUMNS).clicked() {
+            events.push(Action::OpenExternalWindow(OpenWindow::ChooseColunms));
+        }
 
         if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
             events.push(Action::ToggleMarkSame);
@@ -43,6 +30,44 @@ pub fn menu(
         }
 
         egui::widgets::global_theme_preference_buttons(ui);
+    });
+
+    if state.open_extra_window == OpenWindow::ChooseColunms {
+        events.extend(open_external_window(
+            ui,
+            OpenWindow::ChooseColunms,
+            [500.0, 500.0],
+            &|ui| Some(choose_columns(ui, columns)),
+        ));
+    }
+
+    events
+}
+
+fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> {
+    let mut events = Vec::new();
+
+    ui.spacing_mut().scroll = ScrollStyle::solid();
+    ScrollArea::vertical().show(ui, |ui| {
+        let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show_custom(|ui, item_iter| {
+            for (idx, (column, is_checked)) in columns.iter().enumerate() {
+                item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
+                    item_handle.ui(ui, |ui, handle, _state| {
+                        ui.horizontal(|ui| {
+                            handle.ui(ui, |ui| {
+                                if check_button(ui, &column.to_string(), *is_checked).clicked() {
+                                    events.push(Action::ToggleColumn(column.clone()));
+                                }
+                            });
+                        });
+                    })
+                });
+            }
+        });
+
+        if let Some(update) = response.final_update() {
+            events.push(Action::DragColumn(update));
+        }
     });
 
     events
