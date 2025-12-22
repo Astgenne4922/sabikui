@@ -1,4 +1,4 @@
-use egui::{Id, ScrollArea, Ui, style::ScrollStyle};
+use egui::{Id, Layout, RichText, ScrollArea, Ui, UiBuilder, style::ScrollStyle};
 
 use crate::gui::{
     actions::Action,
@@ -7,18 +7,27 @@ use crate::gui::{
         state::{OpenWindow, State},
         table_columns::TableColumns,
     },
-    utils::{check_button, open_external_window},
+    utils::{check_button, open_external_window, pre_render},
 };
 
 pub fn menu(
-    ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, mark_same: bool, state: &State,
+    ui: &mut Ui,
+    columns: &[(TableColumns, bool)],
+    always_on_top: bool,
+    mark_same: bool,
+    state: &State,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
     ui.menu_button(labels::OPTIONS_MENU, |ui| {
         // TODO Options Columns
         if ui.button(labels::CHOOSE_COLUMNS).clicked() {
-            events.push(Action::OpenExternalWindow(OpenWindow::ChooseColunms));
+            events.push(Action::OpenExternalWindow(
+                OpenWindow::ChooseColunms,
+                Some(pre_render(ui.ctx(), |ui| {
+                    choose_columns(ui, columns);
+                })),
+            ));
         }
 
         if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
@@ -36,7 +45,7 @@ pub fn menu(
         events.extend(open_external_window(
             ui,
             OpenWindow::ChooseColunms,
-            [500.0, 500.0],
+            state.extra_window_size.unwrap(),
             &|ui| Some(choose_columns(ui, columns)),
         ));
     }
@@ -52,13 +61,13 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
         let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show_custom(|ui, item_iter| {
             for (idx, (column, is_checked)) in columns.iter().enumerate() {
                 item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
-                    item_handle.ui(ui, |ui, handle, _state| {
-                        ui.horizontal(|ui| {
-                            handle.ui(ui, |ui| {
-                                if check_button(ui, &column.to_string(), *is_checked).clicked() {
-                                    events.push(Action::ToggleColumn(column.clone()));
-                                }
-                            });
+                    item_handle.ui(ui, |ui, handle, state| {
+                        handle.ui(ui, |ui| {
+                            let mut check = *is_checked;
+                            let response = ui.checkbox(&mut check, RichText::new(column.to_string()).heading());
+                            if response.changed() {
+                                events.push(Action::ToggleColumn(column.clone()));
+                            }
                         });
                     })
                 });

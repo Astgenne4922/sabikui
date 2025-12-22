@@ -33,10 +33,22 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
     )
 }
 
+pub fn pre_render(ctx: &egui::Context, add_content: impl FnOnce(&mut Ui)) -> egui::Vec2 {
+    egui::Window::new("pre_render").title_bar(false).show(ctx, |ui| {
+        ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+        add_content(ui);
+    });
+    ctx.used_size()
+}
+
 pub fn open_external_window(
-    ui: &Ui, window_type: OpenWindow, size: impl Into<Vec2>, add_content: &impl Fn(&mut Ui) -> Option<Vec<Action>>,
+    ui: &Ui,
+    window_type: OpenWindow,
+    size: Vec2,
+    add_content: &impl Fn(&mut Ui) -> Option<Vec<Action>>,
 ) -> Vec<Action> {
     let mut events = Vec::new();
+    // println!("{size:?}");
     ui.ctx().show_viewport_immediate(
         egui::ViewportId::from_hash_of(window_type),
         egui::ViewportBuilder::default()
@@ -49,7 +61,12 @@ pub fn open_external_window(
             .with_resizable(false),
         |ctx, class| {
             if class != egui::ViewportClass::Embedded {
-                let inner_events = egui::CentralPanel::default().show(ctx, add_content).inner;
+                let inner_events = egui::CentralPanel::default()
+                    .show(ctx, |ui| {
+                        ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+                        add_content(ui)
+                    })
+                    .inner;
                 if let Some(inner_events) = inner_events {
                     events.extend(inner_events);
                 }
