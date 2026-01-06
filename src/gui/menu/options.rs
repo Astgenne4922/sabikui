@@ -1,4 +1,4 @@
-use egui::{Id, Layout, RichText, ScrollArea, Ui, UiBuilder, style::ScrollStyle};
+use egui::{Id, RichText, ScrollArea, Ui, style::ScrollStyle};
 
 use crate::gui::{
     actions::Action,
@@ -11,22 +11,17 @@ use crate::gui::{
 };
 
 pub fn menu(
-    ui: &mut Ui,
-    columns: &[(TableColumns, bool)],
-    always_on_top: bool,
-    mark_same: bool,
-    state: &State,
+    ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, mark_same: bool, state: &State,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
     ui.menu_button(labels::OPTIONS_MENU, |ui| {
-        // TODO Options Columns
         if ui.button(labels::CHOOSE_COLUMNS).clicked() {
             events.push(Action::OpenExternalWindow(
                 OpenWindow::ChooseColunms,
-                Some(pre_render(ui.ctx(), |ui| {
+                pre_render(ui.ctx(), |ui| {
                     choose_columns(ui, columns);
-                })),
+                }),
             ));
         }
 
@@ -61,7 +56,7 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
         let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show_custom(|ui, item_iter| {
             for (idx, (column, is_checked)) in columns.iter().enumerate() {
                 item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
-                    item_handle.ui(ui, |ui, handle, state| {
+                    item_handle.ui(ui, |ui, handle, _state| {
                         handle.ui(ui, |ui| {
                             let mut check = *is_checked;
                             let response = ui.checkbox(&mut check, RichText::new(column.to_string()).heading());

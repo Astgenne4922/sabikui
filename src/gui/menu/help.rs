@@ -18,13 +18,13 @@ pub fn menu(ui: &mut Ui, state: &State) -> Vec<Action> {
         if ui.button(labels::ABOUT).clicked() {
             events.push(Action::OpenExternalWindow(
                 OpenWindow::About,
-                Some(pre_render(ui.ctx(), about)),
+                pre_render(ui.ctx(), about),
             ));
         }
         if ui.button(labels::KEYBINDS).clicked() {
             events.push(Action::OpenExternalWindow(
                 OpenWindow::Keybinds,
-                Some(pre_render(ui.ctx(), keybinds)),
+                pre_render(ui.ctx(), keybinds),
             ));
         }
     });

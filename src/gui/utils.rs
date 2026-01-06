@@ -33,22 +33,29 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
     )
 }
 
-pub fn pre_render(ctx: &egui::Context, add_content: impl FnOnce(&mut Ui)) -> egui::Vec2 {
+pub fn pre_render(ctx: &egui::Context, add_content: impl Fn(&mut Ui)) -> egui::Vec2 {
+    ctx.request_discard("Pre render external viewport");
     egui::Window::new("pre_render").title_bar(false).show(ctx, |ui| {
         ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
         add_content(ui);
     });
-    ctx.used_size()
+    egui::Window::new("pre_render")
+        .title_bar(false)
+        .show(ctx, |ui| {
+            ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+            add_content(ui);
+        })
+        .expect("[utils.rs - pre_render] The window should always be open")
+        .response
+        .rect
+        .size()
 }
 
 pub fn open_external_window(
-    ui: &Ui,
-    window_type: OpenWindow,
-    size: Vec2,
-    add_content: &impl Fn(&mut Ui) -> Option<Vec<Action>>,
+    ui: &Ui, window_type: OpenWindow, size: Vec2, add_content: &impl Fn(&mut Ui) -> Option<Vec<Action>>,
 ) -> Vec<Action> {
     let mut events = Vec::new();
-    // println!("{size:?}");
+
     ui.ctx().show_viewport_immediate(
         egui::ViewportId::from_hash_of(window_type),
         egui::ViewportBuilder::default()
