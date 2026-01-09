@@ -31,6 +31,13 @@ pub fn menu(
 
         if check_button(ui, labels::ALWAYS_ON_TOP, always_on_top).clicked() {
             events.push(Action::ToggleAlwaysOnTop);
+            if *state.always_on_top() {
+                ui.ctx()
+                    .send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
+            } else {
+                ui.ctx()
+                    .send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
+            }
         }
 
         egui::widgets::global_theme_preference_buttons(ui);

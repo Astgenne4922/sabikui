@@ -22,12 +22,6 @@ impl Menu {
     }
 
     pub fn show(&self, ctx: &egui::Context, state: &State) {
-        if *state.always_on_top() {
-            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
-        } else {
-            ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
-        }
-
         let mut events = Vec::new();
 
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
