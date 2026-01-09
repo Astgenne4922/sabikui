@@ -31,7 +31,6 @@ pub struct State {
     pub drag_start: Option<(Pos2, Vec2)>,
     pub drag_start_index: Option<usize>,
     pub open_extra_window: OpenWindow,
-    pub extra_window_size: Option<Vec2>,
 }
 
 impl State {
@@ -56,7 +55,6 @@ impl State {
             drag_start: None,
             drag_start_index: None,
             open_extra_window: OpenWindow::None,
-            extra_window_size: None,
         }
     }
 

@@ -1,15 +1,11 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
-    data::{
-        constants::shortcuts,
-        state::{OpenWindow, State},
-        theme,
-    },
+    data::{constants::shortcuts, state::State, theme},
     menu::Menu,
     table::Table,
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
-use egui::{Event, UserAttentionType, ViewportCommand, ViewportId};
+use egui::Event;
 use std::sync::mpsc;
 
 mod actions;
@@ -81,15 +77,6 @@ impl Sabikui {
 
 impl App for Sabikui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let open_window = self.state.open_extra_window;
-        if open_window != OpenWindow::None && ctx.wants_pointer_input() {
-            ctx.send_viewport_cmd_to(
-                ViewportId::from_hash_of(open_window),
-                ViewportCommand::RequestUserAttention(UserAttentionType::Informational),
-            );
-            ctx.send_viewport_cmd_to(ViewportId::from_hash_of(open_window), ViewportCommand::Focus);
-        }
-
         self.menu.show(ctx, &self.state);
         self.table.show(ctx, &self.state);
 

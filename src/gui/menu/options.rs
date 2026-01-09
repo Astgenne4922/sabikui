@@ -7,7 +7,7 @@ use crate::gui::{
         state::{OpenWindow, State},
         table_columns::TableColumns,
     },
-    utils::{check_button, open_external_window, pre_render},
+    utils::{check_button, open_window},
 };
 
 pub fn menu(
@@ -17,12 +17,7 @@ pub fn menu(
 
     ui.menu_button(labels::OPTIONS_MENU, |ui| {
         if ui.button(labels::CHOOSE_COLUMNS).clicked() {
-            events.push(Action::OpenExternalWindow(
-                OpenWindow::ChooseColunms,
-                pre_render(ui.ctx(), |ui| {
-                    choose_columns(ui, columns);
-                }),
-            ));
+            events.push(Action::OpenExternalWindow(OpenWindow::ChooseColunms));
         }
 
         if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
@@ -44,12 +39,9 @@ pub fn menu(
     });
 
     if state.open_extra_window == OpenWindow::ChooseColunms {
-        events.extend(open_external_window(
-            ui,
-            OpenWindow::ChooseColunms,
-            state.extra_window_size.unwrap(),
-            &|ui| Some(choose_columns(ui, columns)),
-        ));
+        events.extend(open_window(ui.ctx(), labels::CHOOSE_COLUMNS.to_string(), |ui| {
+            Some(choose_columns(ui, columns))
+        }));
     }
 
     events

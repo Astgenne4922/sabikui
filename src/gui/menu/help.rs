@@ -9,48 +9,32 @@ use crate::gui::{
         },
         state::{OpenWindow, State},
     },
-    utils::{open_external_window, pre_render},
+    utils::open_window,
 };
 
 pub fn menu(ui: &mut Ui, state: &State) -> Vec<Action> {
     let mut events = Vec::new();
     ui.menu_button(labels::HELP_MENU, |ui| {
         if ui.button(labels::ABOUT).clicked() {
-            events.push(Action::OpenExternalWindow(
-                OpenWindow::About,
-                pre_render(ui.ctx(), about),
-            ));
+            events.push(Action::OpenExternalWindow(OpenWindow::About));
         }
         if ui.button(labels::KEYBINDS).clicked() {
-            events.push(Action::OpenExternalWindow(
-                OpenWindow::Keybinds,
-                pre_render(ui.ctx(), keybinds),
-            ));
+            events.push(Action::OpenExternalWindow(OpenWindow::Keybinds));
         }
     });
 
     match state.open_extra_window {
         OpenWindow::About => {
-            events.extend(open_external_window(
-                ui,
-                OpenWindow::About,
-                state.extra_window_size.unwrap(),
-                &|ui| {
-                    about(ui);
-                    None
-                },
-            ));
+            events.extend(open_window(ui.ctx(), labels::ABOUT.to_string(), |ui| {
+                about(ui);
+                None
+            }));
         }
         OpenWindow::Keybinds => {
-            events.extend(open_external_window(
-                ui,
-                OpenWindow::Keybinds,
-                state.extra_window_size.unwrap(),
-                &|ui| {
-                    keybinds(ui);
-                    None
-                },
-            ));
+            events.extend(open_window(ui.ctx(), labels::KEYBINDS.to_string(), |ui| {
+                keybinds(ui);
+                None
+            }));
         }
         _ => {}
     }

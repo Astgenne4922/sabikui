@@ -36,7 +36,7 @@ pub enum Action {
     EndDrag,
     DragColumn(DragUpdate),
     CloseExternalWindow,
-    OpenExternalWindow(OpenWindow, Vec2),
+    OpenExternalWindow(OpenWindow),
 }
 
 pub struct ActionHandler {
@@ -89,11 +89,9 @@ impl ActionHandler {
                 Action::DragColumn(drag_update) => state.update_column_order(drag_update.from, drag_update.to),
                 Action::CloseExternalWindow => {
                     state.open_extra_window = OpenWindow::None;
-                    state.extra_window_size = None;
                 }
-                Action::OpenExternalWindow(open_window, size) => {
+                Action::OpenExternalWindow(open_window) => {
                     state.open_extra_window = open_window;
-                    state.extra_window_size = Some(size);
                 }
             }
         }
