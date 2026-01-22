@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::algorithms;
 
 pub mod parser;
@@ -6,14 +8,32 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
     let files = match args {
         parser::Inputs::File { path } if path.exists() && path.is_file() => vec![path],
         parser::Inputs::Files { paths } if paths.iter().all(|p| p.exists() && p.is_file()) => paths,
-        parser::Inputs::Directory { path } if path.exists() && path.is_dir() => path // TODO recurse sub folders
-            .read_dir()
-            // TODO Handle errors
-            .unwrap()
-            .flatten()
-            .map(|entry| entry.path())
-            .filter(|path| path.is_file())
-            .collect(),
+        parser::Inputs::Directory { path } if path.exists() && path.is_dir() => {
+            let mut files = Vec::new();
+
+            let mut dirs = VecDeque::new();
+
+            if path.is_file() {
+                files.push(path);
+            } else if path.is_dir() {
+                dirs.push_back(path);
+            }
+
+            while let Some(dir) = dirs.pop_front() {
+                // TODO Handle errors
+                for entry in dir.read_dir().unwrap().flatten() {
+                    let path = entry.path();
+
+                    if path.is_file() {
+                        files.push(path);
+                    } else if path.is_dir() {
+                        dirs.push_back(path);
+                    }
+                }
+            }
+
+            files
+        }
         parser::Inputs::Wildcard { regex } => glob::glob(&regex)
             // TODO Handle errors
             .unwrap()
