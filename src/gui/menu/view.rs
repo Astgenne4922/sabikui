@@ -7,13 +7,11 @@ use crate::gui::{
         hashed_file::HashFunction,
         table_columns::TableColumns,
     },
-    utils::{shortcut_button, sort_button},
+    utils::{long_submenu, shortcut_button, sort_button},
 };
 
 pub fn menu(
-    ui: &mut Ui,
-    algorithm_list: &[HashFunction],
-    sorting_column: Option<&(TableColumns, bool)>,
+    ui: &mut Ui, algorithm_list: &[HashFunction], sorting_column: Option<&(TableColumns, bool)>,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
@@ -27,11 +25,9 @@ pub fn menu(
                 events.push(Action::SortBy(TableColumns::Path));
             }
 
-            ui.menu_button(labels::ALGORITHM, |ui| {
-                for alg in algorithm_list {
-                    if sort_button(ui, &TableColumns::Algorithms(alg.clone()), sorting_column).clicked() {
-                        events.push(Action::SortBy(TableColumns::Algorithms(alg.clone())));
-                    }
+            long_submenu(ui, labels::ALGORITHM, algorithm_list, |ui, alg| {
+                if sort_button(ui, &TableColumns::Algorithms(alg.clone()), sorting_column).clicked() {
+                    events.push(Action::SortBy(TableColumns::Algorithms(alg.clone())));
                 }
             });
 

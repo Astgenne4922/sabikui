@@ -4,7 +4,7 @@ use egui::{Pos2, Vec2};
 use egui_dnd::DragUpdate;
 
 use crate::gui::data::{
-    hashed_file::{HashFunction, HashedFile},
+    hashed_file::HashedFile,
     state::{OpenWindow, State},
     table_columns::TableColumns,
 };
@@ -22,7 +22,7 @@ pub enum Action {
     AddFiles(Option<Vec<PathBuf>>),
     AddFolders(Option<Vec<PathBuf>>),
     AddWildcard,
-    CopyHash(HashFunction),
+    CopyProperty(TableColumns),
     SortBy(TableColumns),
     ToggleColumn(TableColumns),
     ToggleAlwaysOnTop,
@@ -68,7 +68,9 @@ impl ActionHandler {
                 Action::AddFiles(new_files) => add_files(new_files, state),
                 Action::AddFolders(folders) => add_folders(folders, state),
                 Action::AddWildcard => add_wildcard(),
-                Action::CopyHash(alg) => state.to_copy = Some(copy_hash(&alg, state.files(), state.selected_rows())),
+                Action::CopyProperty(col) => {
+                    state.to_copy = Some(copy_property(&col, state.files(), state.selected_rows()));
+                }
                 Action::SortBy(column) => state.sort_table(column),
                 Action::ToggleColumn(table_column) => state.toggle_column(&table_column),
                 Action::ToggleAlwaysOnTop => state.toggle_always_on_top(),
@@ -161,11 +163,10 @@ fn add_wildcard() {
     println!("ADD WILDCARD");
 }
 
-fn copy_hash(alg: &HashFunction, files: &[HashedFile], selected_rows: &[usize]) -> String {
-    files
+fn copy_property(col: &TableColumns, files: &[HashedFile], selected_rows: &[usize]) -> String {
+    selected_rows
         .iter()
-        .enumerate()
-        .filter_map(|(i, file)| selected_rows.contains(&i).then_some(file.get_digest(alg)))
+        .map(|i| files[*i].get_from_column(col))
         .collect::<Vec<_>>()
         .join("\n")
 }

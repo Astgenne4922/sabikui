@@ -1,4 +1,4 @@
-use egui::{Button, KeyboardShortcut, ModifierNames, Response, Ui};
+use egui::{Button, KeyboardShortcut, ModifierNames, Response, ScrollArea, Ui, style::ScrollStyle};
 
 use crate::gui::{
     actions::Action,
@@ -31,6 +31,23 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
             .wrap_mode(egui::TextWrapMode::Extend)
             .right_text(symbol),
     )
+}
+
+pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl FnMut(&mut Ui, &T)) {
+    ui.scope(|ui| {
+        if items.is_empty() {
+            ui.disable();
+        }
+        ui.menu_button(label, |ui| {
+            ui.spacing_mut().scroll = ScrollStyle::thin();
+            ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+            ScrollArea::vertical().show(ui, |ui| {
+                for item in items {
+                    add_item(ui, item);
+                }
+            });
+        });
+    });
 }
 
 pub fn open_window(

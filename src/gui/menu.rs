@@ -32,7 +32,7 @@ impl Menu {
             ui.vertical(|ui| {
                 MenuBar::new().ui(ui, |ui| {
                     events.extend(file::menu(ui));
-                    events.extend(edit::menu(ui, &state.algorithm_list()));
+                    events.extend(edit::menu(ui, &state.active_columns()));
                     events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
                     events.extend(options::menu(
                         ui,

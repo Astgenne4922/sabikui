@@ -31,8 +31,8 @@ impl Table {
 
             events.extend(context_menu::open(
                 &ui.interact(ui.min_rect(), ui.unique_id(), Sense::click()),
-                &state.algorithm_list(),
                 !state.selected_rows().is_empty(),
+                &state.active_columns(),
             ));
 
             ui.interact(ui.min_rect(), ui.unique_id(), Sense::click_and_drag());
@@ -41,7 +41,6 @@ impl Table {
 
             ui.spacing_mut().scroll = ScrollStyle::solid();
             let scroll_output = ScrollArea::horizontal()
-                .stick_to_bottom(true)
                 .auto_shrink(false)
                 .scroll_source(egui::scroll_area::ScrollSource {
                     scroll_bar: true,

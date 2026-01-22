@@ -4,12 +4,12 @@ use crate::gui::{
     actions::Action,
     data::{
         constants::{labels, shortcuts},
-        hashed_file::HashFunction,
+        table_columns::TableColumns,
     },
-    utils::shortcut_button,
+    utils::{long_submenu, shortcut_button},
 };
 
-pub fn menu(ui: &mut Ui, algorithm_list: &[HashFunction]) -> Vec<Action> {
+pub fn menu(ui: &mut Ui, active_columns: &[TableColumns]) -> Vec<Action> {
     let mut events = Vec::new();
 
     ui.menu_button(labels::EDIT_MENU, |ui| {
@@ -29,11 +29,9 @@ pub fn menu(ui: &mut Ui, algorithm_list: &[HashFunction]) -> Vec<Action> {
 
         ui.separator();
 
-        ui.menu_button(labels::COPY, |ui| {
-            for alg in algorithm_list {
-                if ui.button(alg.to_ascii_uppercase()).clicked() {
-                    events.push(Action::CopyHash(alg.clone()));
-                }
+        long_submenu(ui, labels::COPY, active_columns, |ui, col| {
+            if ui.button(col.to_string()).clicked() {
+                events.push(Action::CopyProperty(col.clone()));
             }
         });
 

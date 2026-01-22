@@ -47,8 +47,8 @@ pub fn rows(row: &mut TableRow, columns: &[TableColumns], state: &State) -> Vec<
 
     events.extend(context_menu::open(
         &row.response(),
-        &state.algorithm_list(),
         !state.selected_rows().is_empty(),
+        &state.active_columns(),
     ));
 
     if row.response().clicked() {
