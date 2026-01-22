@@ -57,6 +57,9 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
                 item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
                     item_handle.ui(ui, |ui, handle, _state| {
                         handle.ui(ui, |ui| {
+                            if matches!(column, TableColumns::FileName) {
+                                ui.disable();
+                            }
                             let mut check = *is_checked;
                             let response = ui.checkbox(&mut check, RichText::new(column.to_string()).heading());
                             if response.changed() {
