@@ -180,6 +180,8 @@ impl State {
                     file.remove_digest(alg);
                 }
             }
+
+            self.pair_same_hashes();
         }
     }
 
@@ -207,6 +209,10 @@ impl State {
 
     fn pair_same_hashes(&mut self) {
         self.same_hash_index = Vec::new();
+
+        if self.algorithm_list().is_empty() {
+            return;
+        }
 
         let alg = &self.algorithm_list()[0];
 
