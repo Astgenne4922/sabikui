@@ -175,7 +175,7 @@ impl State {
         if let TableColumns::Algorithms(alg) = column {
             for file in &mut self.files {
                 if *is_checked {
-                    file.add_digest_for(alg);
+                    file.add_digest_for(alg); // TODO parallelize this
                 } else {
                     file.remove_digest(alg);
                 }

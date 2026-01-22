@@ -31,13 +31,19 @@ pub fn one_hash_one_file(function: &str, file: &Path) -> String {
 }
 
 pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
-    let hash = Command::new(format!("./hash_functions/{function}"))
-        .args(files)
-        .output()
-        // TODO Handle errors
-        .unwrap();
-    let binding = String::from_utf8(hash.stdout).expect("Output from the executables should always be valid");
-    binding.lines().map(String::from).collect()
+    let mut output = Vec::new();
+
+    for chunk in files.chunks(200) {
+        let hash = Command::new(format!("./hash_functions/{function}"))
+            .args(chunk)
+            .output()
+            // TODO Handle errors
+            .unwrap();
+        let binding = String::from_utf8(hash.stdout).expect("Output from the executables should always be valid");
+        output.extend(binding.lines().map(String::from));
+    }
+
+    output
 }
 
 pub fn many_hash_one_file(functions: &[String], file: &Path) -> Vec<String> {
