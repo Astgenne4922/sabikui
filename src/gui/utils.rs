@@ -41,11 +41,17 @@ pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl
         ui.menu_button(label, |ui| {
             ui.spacing_mut().scroll = ScrollStyle::thin();
             ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-            ScrollArea::vertical().show(ui, |ui| {
-                for item in items {
-                    add_item(ui, item);
-                }
-            });
+            ScrollArea::vertical()
+                .scroll_source(egui::scroll_area::ScrollSource {
+                    scroll_bar: true,
+                    drag: false,
+                    mouse_wheel: true,
+                })
+                .show(ui, |ui| {
+                    for item in items {
+                        add_item(ui, item);
+                    }
+                });
         });
     });
 }

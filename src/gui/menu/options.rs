@@ -51,30 +51,36 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
     let mut events = Vec::new();
 
     ui.spacing_mut().scroll = ScrollStyle::solid();
-    ScrollArea::vertical().show(ui, |ui| {
-        let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show_custom(|ui, item_iter| {
-            for (idx, (column, is_checked)) in columns.iter().enumerate() {
-                item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
-                    item_handle.ui(ui, |ui, handle, _state| {
-                        handle.ui(ui, |ui| {
-                            if matches!(column, TableColumns::FileName) {
-                                ui.disable();
-                            }
-                            let mut check = *is_checked;
-                            let response = ui.checkbox(&mut check, RichText::new(column.to_string()).heading());
-                            if response.changed() {
-                                events.push(Action::ToggleColumn(column.clone()));
-                            }
-                        });
-                    })
-                });
+    ScrollArea::vertical()
+        .scroll_source(egui::scroll_area::ScrollSource {
+            scroll_bar: true,
+            drag: false,
+            mouse_wheel: true,
+        })
+        .show(ui, |ui| {
+            let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show_custom(|ui, item_iter| {
+                for (idx, (column, is_checked)) in columns.iter().enumerate() {
+                    item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
+                        item_handle.ui(ui, |ui, handle, _state| {
+                            handle.ui(ui, |ui| {
+                                if matches!(column, TableColumns::FileName) {
+                                    ui.disable();
+                                }
+                                let mut check = *is_checked;
+                                let response = ui.checkbox(&mut check, RichText::new(column.to_string()).heading());
+                                if response.changed() {
+                                    events.push(Action::ToggleColumn(column.clone()));
+                                }
+                            });
+                        })
+                    });
+                }
+            });
+
+            if let Some(update) = response.final_update() {
+                events.push(Action::DragColumn(update));
             }
         });
-
-        if let Some(update) = response.final_update() {
-            events.push(Action::DragColumn(update));
-        }
-    });
 
     events
 }
