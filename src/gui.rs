@@ -1,6 +1,9 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
-    config::theme,
+    config::{
+        state::{load_config, save_config},
+        theme,
+    },
     constants::shortcuts,
     data::state::State,
     menu::Menu,
@@ -8,7 +11,7 @@ use crate::gui::{
 };
 use eframe::{App, CreationContext, NativeOptions, run_native};
 use egui::Event;
-use std::{fs, sync::mpsc};
+use std::sync::mpsc;
 
 mod actions;
 mod config;
@@ -69,18 +72,8 @@ impl Sabikui {
 
         let (sx, rx) = mpsc::channel();
 
-        let state = fs::read(
-            dirs::config_dir()
-                .expect("[gui.rs - Sabikui::new]: There should be a config directory")
-                .join(constants::CONFIG_DIRECTORY)
-                .join(constants::CONFIG_FILE),
-        )
-        .ok()
-        .and_then(|file| toml::from_slice(&file).ok())
-        .unwrap_or_default();
-
         Self {
-            state,
+            state: load_config(),
             menu: Menu::new(sx.clone()),
             table: Table::new(sx.clone()),
             action_handler: ActionHandler::new(rx),
@@ -91,18 +84,7 @@ impl Sabikui {
 
 impl Drop for Sabikui {
     fn drop(&mut self) {
-        let config_folder = dirs::config_dir()
-            .expect("[gui.rs - Sabikui::drop]: There should be a config directory")
-            .join(constants::CONFIG_DIRECTORY);
-        if !config_folder.exists() {
-            fs::create_dir(&config_folder).unwrap(); // TODO handle errors
-        }
-
-        fs::write(
-            config_folder.join(constants::CONFIG_FILE),
-            toml::to_string_pretty(&self.state).expect("[gui.rs - Sabikui::drop]: The serialization should not fail"),
-        )
-        .unwrap(); // TODO handle errors
+        save_config(&self.state);
     }
 }
 
