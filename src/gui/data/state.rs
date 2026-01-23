@@ -1,6 +1,7 @@
 use std::{ops::RangeInclusive, path::PathBuf};
 
 use egui::{Pos2, Vec2};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     algorithms,
@@ -33,8 +34,8 @@ pub struct State {
     pub open_extra_window: OpenWindow,
 }
 
-impl State {
-    pub fn new() -> Self {
+impl Default for State {
+    fn default() -> Self {
         let hashes = algorithms::get_hash_functions();
         let mut cols = vec![(TableColumns::Path, true), (TableColumns::FileName, true)];
         cols.extend(hashes.iter().map(|h| (TableColumns::Algorithms(h.to_owned()), false)));
@@ -57,7 +58,9 @@ impl State {
             open_extra_window: OpenWindow::None,
         }
     }
+}
 
+impl State {
     pub fn active_columns(&self) -> Vec<TableColumns> {
         self.columns
             .iter()
@@ -269,4 +272,73 @@ impl State {
     pub const fn last_selected(&self) -> &usize {
         &self.last_selected
     }
+}
+
+impl<'de> Deserialize<'de> for State {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let pers = StatePersistence::deserialize(deserializer)?;
+        let hashes = algorithms::get_hash_functions();
+
+        Ok(Self {
+            files: Vec::default(),
+            columns: pers
+                .columns
+                .iter()
+                .map(|(col, check)| (TableColumns::from(col.as_ref()), check.as_bool().unwrap()))
+                .filter(|col| match col {
+                    (TableColumns::Algorithms(alg), _) => hashes.contains(alg),
+                    _ => true,
+                })
+                .collect(),
+            sorting_column: None,
+            always_on_top: pers.options.always_on_top,
+            mark_same: pers.options.mark_same,
+            same_hash_index: Vec::default(),
+            selected_rows: Vec::default(),
+            last_selected: Default::default(),
+            to_copy: Option::default(),
+            drag_start: None,
+            drag_start_index: None,
+            open_extra_window: OpenWindow::None,
+        })
+    }
+}
+
+impl Serialize for State {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        StatePersistence::new(&self.columns, self.always_on_top, self.mark_same).serialize(serializer)
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct StatePersistence {
+    options: StateOptions,
+    columns: toml::Table,
+}
+
+impl StatePersistence {
+    fn new(columns: &[(TableColumns, bool)], always_on_top: bool, mark_same: bool) -> Self {
+        Self {
+            options: StateOptions {
+                always_on_top,
+                mark_same,
+            },
+            columns: columns
+                .iter()
+                .map(|(col, check)| (col.to_string().to_lowercase(), toml::Value::Boolean(*check)))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct StateOptions {
+    always_on_top: bool,
+    mark_same: bool,
 }
