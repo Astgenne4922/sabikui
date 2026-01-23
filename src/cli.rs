@@ -51,7 +51,7 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
             "{output}\n{},{}",
             files[i]
                 .file_name()
-                .expect("There should always be a file name")
+                .expect("[cli.rs - run]: There should always be a file name")
                 .to_string_lossy(),
             digests.iter().map(|v| v[i].clone()).collect::<Vec<_>>().join(",")
         );

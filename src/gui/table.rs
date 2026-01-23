@@ -107,7 +107,8 @@ impl Table {
             }
 
             events.extend(drag_selector::show(
-                &painter.expect("The painter should always be initialized by the table body"),
+                &painter
+                    .expect("[gui/table.rs - Table::show]: The painter should always be initialized by the table body"),
                 &drag_response,
                 state,
                 scroll_output.state.offset.x,
@@ -118,7 +119,7 @@ impl Table {
         for event in events {
             self.message_sender
                 .send(event)
-                .expect("The receiver should always be available");
+                .expect("[gui/table.rs - Table::show]: The receiver should always be available");
         }
     }
 }

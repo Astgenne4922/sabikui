@@ -62,7 +62,9 @@ impl HashedFile {
     pub fn file_name(&self) -> String {
         self.path
             .file_name()
-            .expect("If this method is called the file should be valid")
+            .expect(
+                "[gui/data/hashed_file.rs - HashedFile::file_name]: If this method is called the file should be valid",
+            )
             .to_string_lossy()
             .to_string()
     }
@@ -71,9 +73,11 @@ impl HashedFile {
         let time: DateTime<Local> = self
             .path
             .metadata()
-            .expect("If this method is called the file should exists")
+            .expect(
+                "[gui/data/hashed_file.rs - HashedFile::last_edit]: If this method is called the file should exists",
+            )
             .modified()
-            .expect("Supported platforms should have this method")
+            .expect("[gui/data/hashed_file.rs - HashedFile::last_edit]: Supported platforms should have this method")
             .into();
         time.format("%Y-%m-%d %H:%M:%S").to_string()
     }
@@ -82,7 +86,7 @@ impl HashedFile {
     pub fn size(&self) -> u64 {
         self.path
             .metadata()
-            .expect("If this method is called the file should exists")
+            .expect("[gui/data/hashed_file.rs - HashedFile::size]: If this method is called the file should exists")
             .size()
     }
 
@@ -90,7 +94,7 @@ impl HashedFile {
     pub fn size(&self) -> u64 {
         self.path
             .metadata()
-            .expect("If this method is called the file should exists")
+            .expect("[gui/data/hashed_file.rs - HashedFile::size]: If this method is called the file should exists")
             .file_size()
     }
 
@@ -103,7 +107,7 @@ impl HashedFile {
     pub fn get_digest(&self, algorithm: &HashFunction) -> Digest {
         self.digests
             .get(algorithm)
-            .expect("The searched hash function should always be present")
+            .expect("[gui/data/hashed_file.rs - HashedFile::get_digest]: The searched hash function should always be present")
             .clone()
     }
 
