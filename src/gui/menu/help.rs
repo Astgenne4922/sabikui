@@ -2,13 +2,11 @@ use egui::{ModifierNames, RichText, Ui};
 
 use crate::gui::{
     actions::Action,
-    data::{
-        constants::{
-            labels,
-            shortcuts::{self, KEYBINDS},
-        },
-        state::{OpenWindow, State},
+    constants::{
+        labels,
+        shortcuts::{self, KEYBINDS},
     },
+    data::state::{OpenWindow, State},
     utils::open_window,
 };
 

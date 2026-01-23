@@ -2,11 +2,8 @@ use egui::Ui;
 
 use crate::gui::{
     actions::Action,
-    data::{
-        constants::{labels, shortcuts},
-        hashed_file::HashFunction,
-        table_columns::TableColumns,
-    },
+    constants::{labels, shortcuts},
+    data::{hashed_file::HashFunction, table_columns::TableColumns},
     utils::{long_submenu, shortcut_button, sort_button},
 };
 

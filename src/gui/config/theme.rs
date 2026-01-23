@@ -5,7 +5,7 @@ macro_rules! gruvbox {
             CornerRadius, Shadow, Stroke, Visuals,
             style::{Selection, TextCursorStyle, WidgetVisuals, Widgets},
         };
-        use $crate::gui::data::constants::colors::gruvbox::$mode::*;
+        use $crate::gui::constants::colors::gruvbox::$mode::*;
         Visuals {
             widgets: Widgets {
                 noninteractive: WidgetVisuals {

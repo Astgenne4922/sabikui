@@ -3,7 +3,8 @@ use egui_extras::TableRow;
 
 use crate::gui::{
     actions::Action,
-    data::{constants::colors, state::State, table_columns::TableColumns},
+    constants::colors,
+    data::{state::State, table_columns::TableColumns},
     table::context_menu,
 };
 

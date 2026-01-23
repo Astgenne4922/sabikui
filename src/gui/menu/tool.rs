@@ -2,7 +2,7 @@ use egui::{FontId, Ui};
 
 use crate::gui::{
     actions::Action,
-    data::constants::{icons, labels},
+    constants::{icons, labels},
 };
 
 pub fn bar(ui: &mut Ui) -> Vec<Action> {

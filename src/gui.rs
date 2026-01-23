@@ -1,10 +1,8 @@
 use crate::gui::{
     actions::{Action, ActionHandler},
-    data::{
-        constants::{self, shortcuts},
-        state::State,
-        theme,
-    },
+    config::theme,
+    constants::shortcuts,
+    data::state::State,
     menu::Menu,
     table::Table,
 };
@@ -13,6 +11,8 @@ use egui::Event;
 use std::{fs, sync::mpsc};
 
 mod actions;
+mod config;
+mod constants;
 mod data;
 mod menu;
 mod table;

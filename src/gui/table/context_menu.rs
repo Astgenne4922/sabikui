@@ -2,10 +2,8 @@ use egui::{Event, Response};
 
 use crate::gui::{
     actions::Action,
-    data::{
-        constants::{labels, shortcuts},
-        table_columns::TableColumns,
-    },
+    constants::{labels, shortcuts},
+    data::table_columns::TableColumns,
     utils::{long_submenu, shortcut_button},
 };
 

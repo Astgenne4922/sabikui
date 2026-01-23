@@ -1,9 +1,6 @@
 use egui::{Button, KeyboardShortcut, ModifierNames, Response, ScrollArea, Ui, style::ScrollStyle};
 
-use crate::gui::{
-    actions::Action,
-    data::{constants::icons, table_columns::TableColumns},
-};
+use crate::gui::{actions::Action, constants::icons, data::table_columns::TableColumns};
 
 pub fn shortcut_button(ui: &mut Ui, label: &str, shortcut: KeyboardShortcut) -> Response {
     ui.add(Button::new(label).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))

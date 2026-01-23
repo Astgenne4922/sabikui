@@ -2,7 +2,7 @@ use egui::Ui;
 
 use crate::gui::{
     actions::Action,
-    data::constants::{labels, shortcuts},
+    constants::{labels, shortcuts},
     utils::shortcut_button,
 };
 

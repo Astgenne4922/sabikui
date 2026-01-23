@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::gui::data::{constants::labels, hashed_file::HashFunction};
+use crate::gui::{constants::labels, data::hashed_file::HashFunction};
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TableColumns {

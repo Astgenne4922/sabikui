@@ -2,8 +2,8 @@ use egui::{Id, RichText, ScrollArea, Ui, style::ScrollStyle};
 
 use crate::gui::{
     actions::Action,
+    constants::labels,
     data::{
-        constants::labels,
         state::{OpenWindow, State},
         table_columns::TableColumns,
     },
