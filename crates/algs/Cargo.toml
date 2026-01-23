@@ -1,7 +1,10 @@
 [package]
 name = "sabikui-algs"
 version = "0.0.0"
+homepage = "https://github.com/Astgenne4922/sabikui"
 description = "A hash algorithm executable generator for sabikui"
+license = "MIT OR Apache-2.0"
+include = ["../../LICENSE-APACHE", "../../LICENSE-MIT"]
 
 repository.workspace = true
 authors.workspace = true

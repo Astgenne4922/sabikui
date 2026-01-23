@@ -3,6 +3,8 @@ name = "sabikui"
 version = "0.1.0"
 homepage = "https://github.com/Astgenne4922/sabikui"
 description = "A cli/gui modular application for hash calculation"
+license = "(MIT OR Apache-2.0) AND OFL-1.1"
+include = ["LICENSE-APACHE", "LICENSE-MIT", "assets/*"]
 
 repository.workspace = true
 authors.workspace = true
@@ -18,7 +20,7 @@ chrono = "0.4.42"
 clap = { version = "4.5.53", features = ["derive"] }
 dirs = "6.0.0"
 eframe = "0.33.2"
-egui = "0.33.2"
+egui = { version = "0.33.2", default-features = false }
 egui_dnd = "0.14.0"
 egui_extras = "0.33.2"
 glob = "0.3.3"
