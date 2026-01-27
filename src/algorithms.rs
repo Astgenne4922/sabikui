@@ -12,7 +12,7 @@ pub fn get_hash_functions() -> Vec<String> {
         .map(|e| {
             e.path()
                 .file_stem()
-                .expect("[algorithms.rs - get_hash_functions]: There should always be a file name")
+                .expect("There should always be a file name")
                 .to_string_lossy()
                 .to_string()
         })
@@ -28,7 +28,7 @@ pub fn one_hash_one_file(function: &str, file: &Path) -> String {
         // TODO Handle errors
         .unwrap();
     String::from_utf8(hash.stdout)
-        .expect("[algorithms.rs - one_hash_one_file]: Output from the executables should always be valid")
+        .expect("Output from the executables should always be valid")
 }
 
 pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
@@ -41,7 +41,7 @@ pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
             // TODO Handle errors
             .unwrap();
         let binding = String::from_utf8(hash.stdout)
-            .expect("[algorithms.rs - one_hash_many_files]: Output from the executables should always be valid");
+            .expect("Output from the executables should always be valid");
         output.extend(binding.lines().map(String::from));
     }
 

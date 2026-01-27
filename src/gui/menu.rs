@@ -50,7 +50,7 @@ impl Menu {
         for event in events {
             self.message_sender
                 .send(event)
-                .expect("[gui/menu.rs - Menu::show]: The receiver should always be available");
+                .expect("The receiver should always be available");
         }
     }
 }

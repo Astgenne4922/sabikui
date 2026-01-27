@@ -172,7 +172,7 @@ impl State {
             .columns
             .iter_mut()
             .find(|(c, _)| c == column)
-            .expect("[gui/data/state.rs - State::toggle_column]: The column should always be present");
+            .expect("The column should always be present");
 
         *is_checked = !*is_checked;
         if let TableColumns::Algorithms(alg) = column {

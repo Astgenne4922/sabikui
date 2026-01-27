@@ -120,7 +120,7 @@ impl App for Sabikui {
             for event in events {
                 self.message_sender
                     .send(event)
-                    .expect("[gui.rs - Sabikui::update]: The receiver should always be available");
+                    .expect("The receiver should always be available");
             }
         });
 
