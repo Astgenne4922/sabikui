@@ -152,7 +152,15 @@ impl State {
     }
 
     pub fn add_files(&mut self, files: &[PathBuf]) {
-        self.files.extend(HashedFile::build_vec(files, &self.algorithm_list()));
+        let mapped_files: Vec<_> = self.files.iter().map(HashedFile::get_path).collect();
+        self.files.extend(HashedFile::build_vec(
+            &files
+                .iter()
+                .filter(|&f| !mapped_files.contains(f))
+                .cloned()
+                .collect::<Vec<_>>(),
+            &self.algorithm_list(),
+        ));
 
         if let Some((column, reverse)) = &self.sorting_column {
             self.files.sort_by_key(|f| f.get_from_column(column));
