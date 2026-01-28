@@ -3,6 +3,7 @@ use egui::Ui;
 use crate::gui::{
     actions::Action,
     constants::{labels, shortcuts},
+    data::state::OpenWindow,
     utils::shortcut_button,
 };
 
@@ -19,7 +20,7 @@ pub fn menu(ui: &mut Ui) -> Vec<Action> {
         }
 
         if shortcut_button(ui, labels::ADD_WILDCARD, shortcuts::ADD_WILDCARD).clicked() {
-            events.push(Action::AddWildcard);
+            events.push(Action::OpenExternalWindow(OpenWindow::AddWildcard));
         }
 
         ui.separator();

@@ -21,7 +21,7 @@ pub enum Action {
     ClearAll,
     AddFiles(Option<Vec<PathBuf>>),
     AddFolders(Option<Vec<PathBuf>>),
-    AddWildcard,
+    AddWildcard(String),
     CopyProperty(TableColumns),
     SortBy(TableColumns),
     ToggleColumn(TableColumns),
@@ -67,7 +67,10 @@ impl ActionHandler {
                 Action::ClearAll => state.clear_all(),
                 Action::AddFiles(new_files) => add_files(new_files, state),
                 Action::AddFolders(folders) => add_folders(folders, state),
-                Action::AddWildcard => add_wildcard(),
+                Action::AddWildcard(wildcard) => {
+                    state.open_extra_window = OpenWindow::None;
+                    add_wildcard(&wildcard, state);
+                }
                 Action::CopyProperty(col) => {
                     state.to_copy = Some(copy_property(&col, state.files(), state.selected_rows()));
                 }
@@ -158,9 +161,11 @@ fn add_folders(folders: Option<Vec<PathBuf>>, state: &mut State) {
     }
 }
 
-// TODO add wildcard - F4
-fn add_wildcard() {
-    println!("ADD WILDCARD");
+fn add_wildcard(wildcard: &str, state: &mut State) {
+    if let Ok(paths) = glob::glob(wildcard) {
+        let list = paths.filter_map(Result::ok).collect::<Vec<_>>();
+        state.add_files(&get_files(&list));
+    }
 }
 
 fn copy_property(col: &TableColumns, files: &[HashedFile], selected_rows: &[usize]) -> String {

@@ -67,7 +67,7 @@ fn keybinds(ui: &mut Ui) {
                 Action::ClearSelected => labels::CLEAR_SELECTED,
                 Action::AddFiles(_) => labels::ADD_FILE,
                 Action::AddFolders(_) => labels::ADD_FOLDER,
-                Action::AddWildcard => labels::ADD_WILDCARD,
+                Action::OpenExternalWindow(OpenWindow::AddWildcard) => labels::ADD_WILDCARD,
                 _ => unreachable!(),
             };
             ui.heading(label);

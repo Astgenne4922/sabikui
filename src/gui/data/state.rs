@@ -17,6 +17,7 @@ pub enum OpenWindow {
     About,
     Keybinds,
     ChooseColunms,
+    AddWildcard,
 }
 
 pub struct State {

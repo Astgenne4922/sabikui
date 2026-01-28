@@ -1,6 +1,7 @@
 use crate::gui::{
     actions::Action,
     data::state::{OpenWindow, State},
+    utils::wildcard_window,
 };
 use egui::{MenuBar, TopBottomPanel};
 use std::sync::mpsc;
@@ -45,6 +46,10 @@ impl Menu {
                 });
                 events.extend(tool::bar(ui));
             });
+
+            if state.open_extra_window == OpenWindow::AddWildcard {
+                events.extend(wildcard_window(ctx));
+            }
         });
 
         for event in events {

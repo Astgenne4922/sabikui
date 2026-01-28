@@ -1,6 +1,6 @@
 use egui::{Key, KeyboardShortcut, Modifiers};
 
-use crate::gui::actions::Action;
+use crate::gui::{actions::Action, data::state::OpenWindow};
 
 pub const ADD_FILE: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F1);
 pub const ADD_FOLDER: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F2);
@@ -22,7 +22,7 @@ pub const KEYBINDS: [(&KeyboardShortcut, Action); 8] = [
     (&SAVE_SELECTED, Action::SaveSelected),
     (&ADD_FILE, Action::AddFiles(None)),
     (&ADD_FOLDER, Action::AddFolders(None)),
-    (&ADD_WILDCARD, Action::AddWildcard),
+    (&ADD_WILDCARD, Action::OpenExternalWindow(OpenWindow::AddWildcard)),
     (&REFRESH, Action::Refresh),
     (&CLEAR_SELECTED, Action::ClearSelected),
 ];

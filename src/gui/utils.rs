@@ -1,6 +1,10 @@
 use egui::{Button, KeyboardShortcut, ModifierNames, Response, ScrollArea, Ui, style::ScrollStyle};
 
-use crate::gui::{actions::Action, constants::icons, data::table_columns::TableColumns};
+use crate::gui::{
+    actions::Action,
+    constants::{icons, labels},
+    data::table_columns::TableColumns,
+};
 
 pub fn shortcut_button(ui: &mut Ui, label: &str, shortcut: KeyboardShortcut) -> Response {
     ui.add(Button::new(label).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))
@@ -73,4 +77,42 @@ pub fn open_window(
     }
 
     events
+}
+
+pub fn wildcard_window(ctx: &egui::Context) -> Vec<Action> {
+    open_window(ctx, labels::ADD_WILDCARD.to_string(), |ui| {
+        let mut events = Vec::new();
+        let mut text: String = ctx.data(|data| data.get_temp("add_wildcard_text".into()).unwrap_or_default());
+
+        ui.add_space(5.0);
+
+        ui.horizontal(|ui| {
+            ui.text_edit_singleline(&mut text);
+            if ui.button("...").clicked()
+                && let Some(folder) = rfd::FileDialog::new().pick_folder()
+            {
+                text = folder.display().to_string();
+            }
+        });
+
+        ui.add_space(10.0);
+
+        ui.horizontal(|ui| {
+            if ui.button(labels::OK).clicked() {
+                events.push(Action::AddWildcard(text.clone()));
+            }
+
+            if ui.button(labels::CANCEL).clicked() {
+                events.push(Action::CloseExternalWindow);
+            }
+        });
+
+        ui.add_space(5.0);
+
+        ctx.data_mut(|data| {
+            data.insert_temp("add_wildcard_text".into(), text);
+        });
+
+        Some(events)
+    })
 }

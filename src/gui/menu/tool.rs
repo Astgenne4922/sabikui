@@ -3,6 +3,7 @@ use egui::{FontId, Ui};
 use crate::gui::{
     actions::Action,
     constants::{icons, labels},
+    data::state::OpenWindow,
 };
 
 pub fn bar(ui: &mut Ui) -> Vec<Action> {
@@ -40,7 +41,7 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
             .on_hover_text(labels::ADD_WILDCARD)
             .clicked()
         {
-            events.push(Action::AddWildcard);
+            events.push(Action::OpenExternalWindow(OpenWindow::AddWildcard));
         }
 
         ui.separator();

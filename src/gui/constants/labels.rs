@@ -32,3 +32,6 @@ pub const ALWAYS_ON_TOP: &str = "Always on Top";
 pub const HELP_MENU: &str = "Help";
 pub const ABOUT: &str = "About";
 pub const KEYBINDS: &str = "Keybinds";
+
+pub const OK: &str = "Ok";
+pub const CANCEL: &str = "Cancel";
