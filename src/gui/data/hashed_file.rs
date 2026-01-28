@@ -11,7 +11,7 @@ use std::os::windows::fs::MetadataExt;
 use chrono::{DateTime, Local};
 
 use crate::{
-    algorithms::{many_hash_one_file, many_hashes_many_files, one_hash_one_file},
+    algorithms::{many_hash_one_file, many_hashes_many_files},
     gui::data::table_columns::TableColumns,
 };
 
@@ -107,9 +107,8 @@ impl HashedFile {
             .clone()
     }
 
-    pub fn add_digest_for(&mut self, algorithm: &HashFunction) {
-        self.digests
-            .insert(algorithm.clone(), one_hash_one_file(algorithm, &self.path));
+    pub fn add_digest_for(&mut self, algorithm: &HashFunction, hash: &str) {
+        self.digests.insert(algorithm.clone(), hash.to_string());
     }
 
     pub fn remove_digest(&mut self, algorithm: &HashFunction) {

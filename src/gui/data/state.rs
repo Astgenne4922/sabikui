@@ -4,7 +4,7 @@ use egui::{Pos2, Vec2};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    algorithms,
+    algorithms::{self, one_hash_many_files},
     gui::data::{
         hashed_file::{Digest, HashFunction, HashedFile},
         table_columns::TableColumns,
@@ -177,10 +177,13 @@ impl State {
 
         *is_checked = !*is_checked;
         if let TableColumns::Algorithms(alg) = column {
-            for file in &mut self.files {
-                if *is_checked {
-                    file.add_digest_for(alg); // TODO parallelize this
-                } else {
+            if *is_checked {
+                one_hash_many_files(alg, &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>())
+                    .iter()
+                    .enumerate()
+                    .for_each(|(i, hash)| self.files[i].add_digest_for(alg, hash));
+            } else {
+                for file in &mut self.files {
                     file.remove_digest(alg);
                 }
             }
