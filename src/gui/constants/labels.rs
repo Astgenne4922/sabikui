@@ -35,3 +35,5 @@ pub const KEYBINDS: &str = "Keybinds";
 
 pub const OK: &str = "Ok";
 pub const CANCEL: &str = "Cancel";
+
+pub const BOTTOM_BAR_TEXT: &str = "file/s";

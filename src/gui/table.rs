@@ -4,6 +4,7 @@ use std::sync::mpsc;
 
 use crate::gui::{
     actions::Action,
+    constants::labels,
     data::state::{OpenWindow, State},
 };
 
@@ -23,6 +24,13 @@ impl Table {
 
     pub fn show(&self, ctx: &egui::Context, state: &State) {
         let mut events = Vec::new();
+
+        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
+            ui.style_mut().interaction.selectable_labels = false;
+            ui.horizontal(|ui| {
+                ui.label(format!("{} {}", state.files().len(), labels::BOTTOM_BAR_TEXT));
+            });
+        });
 
         CentralPanel::default().show(ctx, |ui| {
             if state.open_extra_window != OpenWindow::None {
