@@ -65,20 +65,16 @@ impl Table {
                         .resolve(ui.style())
                         .size
                         .max(ui.spacing().interact_size.y);
-                    let available_height = ui.available_height();
 
                     let columns = state.active_columns();
 
                     TableBuilder::new(ui)
                         .drag_to_scroll(false)
-                        .resizable(true)
                         .columns(
                             Column::remainder().at_least(100.0).clip(true).resizable(true),
-                            columns.len() + 1,
+                            columns.len(),
                         )
-                        .auto_shrink(false)
                         .min_scrolled_height(0.0)
-                        .max_scroll_height(available_height)
                         .sense(Sense::click())
                         .header(20.0, |mut header| {
                             for column in &columns {
