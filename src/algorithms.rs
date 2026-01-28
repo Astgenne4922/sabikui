@@ -27,8 +27,7 @@ pub fn one_hash_one_file(function: &str, file: &Path) -> String {
         .output()
         // TODO Handle errors
         .unwrap();
-    String::from_utf8(hash.stdout)
-        .expect("Output from the executables should always be valid")
+    String::from_utf8(hash.stdout).expect("Output from the executables should always be valid")
 }
 
 pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
@@ -40,8 +39,7 @@ pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
             .output()
             // TODO Handle errors
             .unwrap();
-        let binding = String::from_utf8(hash.stdout)
-            .expect("Output from the executables should always be valid");
+        let binding = String::from_utf8(hash.stdout).expect("Output from the executables should always be valid");
         output.extend(binding.lines().map(String::from));
     }
 

@@ -107,8 +107,7 @@ impl Table {
             }
 
             events.extend(drag_selector::show(
-                &painter
-                    .expect("The painter should always be initialized by the table body"),
+                &painter.expect("The painter should always be initialized by the table body"),
                 &drag_response,
                 state,
                 scroll_output.state.offset.x,
