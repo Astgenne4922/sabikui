@@ -3,7 +3,7 @@ use std::{
     fs,
     ops::RangeInclusive,
     path::PathBuf,
-    sync::mpsc::{self, Sender},
+    sync::mpsc::{Receiver, Sender},
 };
 
 use egui::{Pos2, Vec2};
@@ -48,11 +48,11 @@ pub enum Action {
 }
 
 pub struct ActionHandler {
-    message_receiver: mpsc::Receiver<Action>,
+    message_receiver: Receiver<Action>,
 }
 
 impl ActionHandler {
-    pub const fn new(message_receiver: mpsc::Receiver<Action>) -> Self {
+    pub const fn new(message_receiver: Receiver<Action>) -> Self {
         Self { message_receiver }
     }
 

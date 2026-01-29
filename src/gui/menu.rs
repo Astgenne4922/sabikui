@@ -1,10 +1,10 @@
 use crate::gui::{
     actions::Action,
-    data::state::{AsyncAction, OpenWindow, State},
+    data::state::{OpenWindow, State},
     utils::wildcard_window,
 };
-use egui::{MenuBar, TopBottomPanel};
-use std::sync::mpsc;
+use egui::{MenuBar, Ui};
+use std::sync::mpsc::Sender;
 
 mod edit;
 mod file;
@@ -14,43 +14,37 @@ mod tool;
 mod view;
 
 pub struct Menu {
-    message_sender: mpsc::Sender<Action>,
+    message_sender: Sender<Action>,
 }
 
 impl Menu {
-    pub const fn new(message_sender: mpsc::Sender<Action>) -> Self {
+    pub const fn new(message_sender: Sender<Action>) -> Self {
         Self { message_sender }
     }
 
-    pub fn show(&self, ctx: &egui::Context, state: &State) {
+    pub fn show(&self, ui: &mut Ui, state: &State) {
         let mut events = Vec::new();
 
-        TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            if state.open_extra_window != OpenWindow::None || state.async_action != AsyncAction::None {
-                ui.disable();
-            }
-
-            ui.vertical(|ui| {
-                MenuBar::new().ui(ui, |ui| {
-                    events.extend(file::menu(ui));
-                    events.extend(edit::menu(ui, &state.active_columns()));
-                    events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
-                    events.extend(options::menu(
-                        ui,
-                        state.columns(),
-                        *state.always_on_top(),
-                        *state.mark_same(),
-                        state,
-                    ));
-                    events.extend(help::menu(ui, state));
-                });
-                events.extend(tool::bar(ui));
+        ui.vertical(|ui| {
+            MenuBar::new().ui(ui, |ui| {
+                events.extend(file::menu(ui));
+                events.extend(edit::menu(ui, &state.active_columns()));
+                events.extend(view::menu(ui, &state.algorithm_list(), state.sorting_column()));
+                events.extend(options::menu(
+                    ui,
+                    state.columns(),
+                    *state.always_on_top(),
+                    *state.mark_same(),
+                    state,
+                ));
+                events.extend(help::menu(ui, state));
             });
-
-            if state.open_extra_window == OpenWindow::AddWildcard {
-                events.extend(wildcard_window(ctx));
-            }
+            events.extend(tool::bar(ui));
         });
+
+        if state.open_extra_window == OpenWindow::AddWildcard {
+            events.extend(wildcard_window(ui.ctx()));
+        }
 
         for event in events {
             self.message_sender

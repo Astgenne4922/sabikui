@@ -1,4 +1,7 @@
-use egui::{Button, KeyboardShortcut, ModifierNames, Response, ScrollArea, Ui, style::ScrollStyle};
+use egui::{
+    Button, Context, KeyboardShortcut, ModifierNames, Response, ScrollArea, TextWrapMode, Ui, Window,
+    scroll_area::ScrollSource, style::ScrollStyle,
+};
 
 use crate::gui::{
     actions::Action,
@@ -29,7 +32,7 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
     };
     ui.add(
         Button::new(column.to_string())
-            .wrap_mode(egui::TextWrapMode::Extend)
+            .wrap_mode(TextWrapMode::Extend)
             .right_text(symbol),
     )
 }
@@ -41,9 +44,9 @@ pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl
         }
         ui.menu_button(label, |ui| {
             ui.spacing_mut().scroll = ScrollStyle::thin();
-            ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+            ui.style_mut().wrap_mode = Some(TextWrapMode::Extend);
             ScrollArea::vertical()
-                .scroll_source(egui::scroll_area::ScrollSource {
+                .scroll_source(ScrollSource {
                     scroll_bar: true,
                     drag: false,
                     mouse_wheel: true,
@@ -58,12 +61,12 @@ pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl
 }
 
 pub fn open_window(
-    ctx: &egui::Context, title: String, add_content: impl FnOnce(&mut Ui) -> Option<Vec<Action>>,
+    ctx: &Context, title: String, add_content: impl FnOnce(&mut Ui) -> Option<Vec<Action>>,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
     let mut open = true;
-    egui::Window::new(title)
+    Window::new(title)
         .collapsible(false)
         .resizable(false)
         .open(&mut open)
@@ -79,7 +82,7 @@ pub fn open_window(
     events
 }
 
-pub fn wildcard_window(ctx: &egui::Context) -> Vec<Action> {
+pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
     open_window(ctx, labels::ADD_WILDCARD.to_string(), |ui| {
         let mut events = Vec::new();
         let mut text: String = ctx.data(|data| data.get_temp("add_wildcard_text".into()).unwrap_or_default());
@@ -90,6 +93,7 @@ pub fn wildcard_window(ctx: &egui::Context) -> Vec<Action> {
             ui.text_edit_singleline(&mut text);
             if ui.button("...").clicked()
                 && let Some(folder) = rfd::FileDialog::new().pick_folder()
+            // TODO oh no
             {
                 text = folder.display().to_string();
             }

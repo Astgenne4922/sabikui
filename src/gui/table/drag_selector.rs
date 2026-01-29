@@ -1,4 +1,4 @@
-use egui::{Painter, Response, vec2};
+use egui::{Color32, Painter, Rect, Response, Stroke, StrokeKind, vec2};
 
 use crate::gui::{actions::Action, data::state::State};
 
@@ -19,14 +19,14 @@ pub fn show(painter: &Painter, response: &Response, state: &State, x_offset: f32
         let min = pointer_pos.min(drag_start);
         let max = pointer_pos.max(drag_start);
         painter.rect(
-            egui::Rect { min, max },
+            Rect { min, max },
             0,
-            egui::Color32::from_hex("#45858877").unwrap(),
-            egui::Stroke {
-                color: egui::Color32::from_hex("#458588").unwrap(),
+            Color32::from_hex("#45858877").unwrap(),
+            Stroke {
+                color: Color32::from_hex("#458588").unwrap(),
                 width: 1.0,
             },
-            egui::StrokeKind::Middle,
+            StrokeKind::Middle,
         );
     }
 

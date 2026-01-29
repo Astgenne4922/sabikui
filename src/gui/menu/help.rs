@@ -1,4 +1,4 @@
-use egui::{ModifierNames, RichText, Ui};
+use egui::{Grid, ModifierNames, RichText, Ui};
 
 use crate::gui::{
     actions::Action,
@@ -49,7 +49,7 @@ fn about(ui: &mut Ui) {
 }
 
 fn keybinds(ui: &mut Ui) {
-    egui::Grid::new(OpenWindow::Keybinds).num_columns(2).show(ui, |ui| {
+    Grid::new(OpenWindow::Keybinds).num_columns(2).show(ui, |ui| {
         ui.heading(labels::COPY_SELECTED);
         ui.heading(shortcuts::COPY_SELECTED.format(&ModifierNames::NAMES, cfg!(target_os = "macos")));
         ui.end_row();

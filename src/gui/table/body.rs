@@ -32,6 +32,7 @@ pub fn rows(row: &mut TableRow, columns: &[TableColumns], state: &State) -> Vec<
             ui.style_mut().interaction.selectable_labels = false;
             if let Some(color) = color_idx.map(|idx| {
                 if ui.style().visuals.dark_mode {
+                    // TODO missed colors
                     colors::gruvbox::dark::HIGHLIGHT[idx]
                 } else {
                     colors::gruvbox::light::HIGHLIGHT[idx]

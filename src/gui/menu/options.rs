@@ -1,4 +1,6 @@
-use egui::{Id, RichText, ScrollArea, Ui, style::ScrollStyle};
+use egui::{
+    Id, RichText, ScrollArea, Ui, ViewportCommand, WindowLevel, scroll_area::ScrollSource, style::ScrollStyle, widgets,
+};
 
 use crate::gui::{
     actions::Action,
@@ -28,14 +30,14 @@ pub fn menu(
             events.push(Action::ToggleAlwaysOnTop);
             if *state.always_on_top() {
                 ui.ctx()
-                    .send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::Normal));
+                    .send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::Normal));
             } else {
                 ui.ctx()
-                    .send_viewport_cmd(egui::ViewportCommand::WindowLevel(egui::WindowLevel::AlwaysOnTop));
+                    .send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::AlwaysOnTop));
             }
         }
 
-        egui::widgets::global_theme_preference_buttons(ui);
+        widgets::global_theme_preference_buttons(ui);
     });
 
     if state.open_extra_window == OpenWindow::ChooseColunms {
@@ -52,7 +54,7 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
 
     ui.spacing_mut().scroll = ScrollStyle::solid();
     ScrollArea::vertical()
-        .scroll_source(egui::scroll_area::ScrollSource {
+        .scroll_source(ScrollSource {
             scroll_bar: true,
             drag: false,
             mouse_wheel: true,

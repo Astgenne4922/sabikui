@@ -1,12 +1,8 @@
-use egui::{CentralPanel, ScrollArea, Sense, TextStyle, style::ScrollStyle};
+use egui::{Rect, ScrollArea, Sense, TextStyle, Ui, scroll_area::ScrollSource, style::ScrollStyle};
 use egui_extras::{Column, TableBuilder};
-use std::sync::mpsc;
+use std::sync::mpsc::Sender;
 
-use crate::gui::{
-    actions::Action,
-    constants::labels,
-    data::state::{AsyncAction, OpenWindow, State},
-};
+use crate::gui::{actions::Action, data::state::State};
 
 mod body;
 mod context_menu;
@@ -14,110 +10,97 @@ mod drag_selector;
 mod header;
 
 pub struct Table {
-    message_sender: mpsc::Sender<Action>,
+    message_sender: Sender<Action>,
 }
 
 impl Table {
-    pub const fn new(message_sender: mpsc::Sender<Action>) -> Self {
+    pub const fn new(message_sender: Sender<Action>) -> Self {
         Self { message_sender }
     }
 
-    pub fn show(&self, ctx: &egui::Context, state: &State) {
+    pub fn show(&self, ui: &mut Ui, state: &State) {
         let mut events = Vec::new();
 
-        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-            ui.style_mut().interaction.selectable_labels = false;
-            ui.horizontal(|ui| {
-                ui.label(format!("{} {}", state.files().len(), labels::BOTTOM_BAR_TEXT));
-            });
-        });
+        events.extend(context_menu::open(
+            &ui.interact(ui.min_rect(), ui.unique_id(), Sense::click()),
+            !state.selected_rows().is_empty(),
+            &state.active_columns(),
+        ));
 
-        CentralPanel::default().show(ctx, |ui| {
-            if state.open_extra_window != OpenWindow::None || state.async_action != AsyncAction::None {
-                ui.disable();
-            }
+        ui.interact(ui.min_rect(), ui.unique_id(), Sense::click_and_drag());
+        let drag_response = ui.response();
+        let mut painter = None;
 
-            events.extend(context_menu::open(
-                &ui.interact(ui.min_rect(), ui.unique_id(), Sense::click()),
-                !state.selected_rows().is_empty(),
-                &state.active_columns(),
-            ));
+        ui.spacing_mut().scroll = ScrollStyle::solid();
+        let scroll_output = ScrollArea::horizontal()
+            .auto_shrink(false)
+            .scroll_source(ScrollSource {
+                scroll_bar: true,
+                drag: false,
+                mouse_wheel: true,
+            })
+            .show(ui, |ui| {
+                if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
+                    let rect = Rect::from_pos(pointer_pos);
+                    ui.scroll_to_rect(rect, None);
+                }
 
-            ui.interact(ui.min_rect(), ui.unique_id(), Sense::click_and_drag());
-            let drag_response = ui.response();
-            let mut painter = None;
+                let text_height = TextStyle::Body
+                    .resolve(ui.style())
+                    .size
+                    .max(ui.spacing().interact_size.y);
 
-            ui.spacing_mut().scroll = ScrollStyle::solid();
-            let scroll_output = ScrollArea::horizontal()
-                .auto_shrink(false)
-                .scroll_source(egui::scroll_area::ScrollSource {
-                    scroll_bar: true,
-                    drag: false,
-                    mouse_wheel: true,
-                })
-                .show(ui, |ui| {
-                    if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
-                        let rect = egui::Rect::from_pos(pointer_pos);
-                        ui.scroll_to_rect(rect, None);
-                    }
+                let columns = state.active_columns();
 
-                    let text_height = TextStyle::Body
-                        .resolve(ui.style())
-                        .size
-                        .max(ui.spacing().interact_size.y);
-
-                    let columns = state.active_columns();
-
-                    TableBuilder::new(ui)
-                        .drag_to_scroll(false)
-                        .columns(
-                            Column::remainder().at_least(100.0).clip(true).resizable(true),
-                            columns.len(),
-                        )
-                        .min_scrolled_height(0.0)
-                        .sense(Sense::click())
-                        .header(20.0, |mut header| {
-                            for column in &columns {
-                                header.col(|ui| {
-                                    if let Some(event) = header::button(ui, column, state.sorting_column()) {
-                                        events.push(event);
-                                    }
-                                });
-                            }
-                        })
-                        .body(|mut body| {
-                            painter = Some(body.ui_mut().painter().clone());
-                            if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
-                                let rect = egui::Rect::from_pos(pointer_pos);
-                                body.ui_mut().scroll_to_rect(rect, None);
-                            }
-
-                            let mut visible_rows = Vec::new();
-
-                            body.rows(text_height, state.files().len(), |mut row| {
-                                events.extend(body::rows(&mut row, &columns, state));
-                                visible_rows.push((row.response(), row.index()));
+                TableBuilder::new(ui)
+                    .drag_to_scroll(false)
+                    .columns(
+                        Column::remainder().at_least(100.0).clip(true).resizable(true),
+                        columns.len(),
+                    )
+                    .min_scrolled_height(0.0)
+                    .sense(Sense::click())
+                    .header(20.0, |mut header| {
+                        for column in &columns {
+                            header.col(|ui| {
+                                if let Some(event) = header::button(ui, column, state.sorting_column()) {
+                                    events.push(event);
+                                }
                             });
+                        }
+                    })
+                    .body(|mut body| {
+                        painter = Some(body.ui_mut().painter().clone());
+                        if let Some(pointer_pos) = drag_response.interact_pointer_pos() {
+                            let rect = Rect::from_pos(pointer_pos);
+                            body.ui_mut().scroll_to_rect(rect, None);
+                        }
 
-                            events.extend(drag_selector::handle(&visible_rows, &drag_response, state));
-                        })
-                        .state
-                        .offset
-                        .y
-                });
+                        let mut visible_rows = Vec::new();
 
-            if ui.response().clicked() {
-                events.push(Action::DeselectAll);
-            }
+                        body.rows(text_height, state.files().len(), |mut row| {
+                            events.extend(body::rows(&mut row, &columns, state));
+                            visible_rows.push((row.response(), row.index()));
+                        });
 
-            events.extend(drag_selector::show(
-                &painter.expect("The painter should always be initialized by the table body"),
-                &drag_response,
-                state,
-                scroll_output.state.offset.x,
-                scroll_output.inner,
-            ));
-        });
+                        events.extend(drag_selector::handle(&visible_rows, &drag_response, state));
+                    })
+                    .state
+                    .offset
+                    .y
+            });
+
+        if ui.response().clicked() {
+            events.push(Action::DeselectAll);
+        }
+
+        events.extend(drag_selector::show(
+            &painter.expect("The painter should always be initialized by the table body"),
+            &drag_response,
+            state,
+            scroll_output.state.offset.x,
+            scroll_output.inner,
+        ));
 
         for event in events {
             self.message_sender
