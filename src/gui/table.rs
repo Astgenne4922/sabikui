@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use crate::gui::{
     actions::Action,
     constants::labels,
-    data::state::{OpenWindow, State},
+    data::state::{AsyncAction, OpenWindow, State},
 };
 
 mod body;
@@ -33,7 +33,7 @@ impl Table {
         });
 
         CentralPanel::default().show(ctx, |ui| {
-            if state.open_extra_window != OpenWindow::None {
+            if state.open_extra_window != OpenWindow::None || state.async_action != AsyncAction::None {
                 ui.disable();
             }
 

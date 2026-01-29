@@ -1,11 +1,17 @@
-use std::{collections::VecDeque, fs, ops::RangeInclusive, path::PathBuf, sync::mpsc};
+use std::{
+    collections::VecDeque,
+    fs,
+    ops::RangeInclusive,
+    path::PathBuf,
+    sync::mpsc::{self, Sender},
+};
 
 use egui::{Pos2, Vec2};
 use egui_dnd::DragUpdate;
 
 use crate::gui::data::{
     hashed_file::HashedFile,
-    state::{OpenWindow, State},
+    state::{AsyncAction, OpenWindow, State},
     table_columns::TableColumns,
 };
 
@@ -19,8 +25,10 @@ pub enum Action {
     SaveSelected,
     ClearSelected,
     ClearAll,
-    AddFiles(Option<Vec<PathBuf>>),
-    AddFolders(Option<Vec<PathBuf>>),
+    PickFiles,
+    PickFolders,
+    AddFiles(Vec<PathBuf>),
+    AddFolders(Vec<PathBuf>),
     AddWildcard(String),
     CopyProperty(TableColumns),
     SortBy(TableColumns),
@@ -48,7 +56,7 @@ impl ActionHandler {
         Self { message_receiver }
     }
 
-    pub fn handle(&self, state: &mut State) {
+    pub fn handle(&self, state: &mut State, sender: &Sender<Action>) {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
                 Action::Refresh => state.refresh(),
@@ -65,8 +73,16 @@ impl ActionHandler {
                 Action::SaveSelected => save_selected(state.files(), state.selected_rows(), &state.active_columns()),
                 Action::ClearSelected => state.clear_selected(),
                 Action::ClearAll => state.clear_all(),
-                Action::AddFiles(new_files) => add_files(new_files, state),
-                Action::AddFolders(folders) => add_folders(folders, state),
+                Action::PickFiles => pick_files(state, sender.clone()),
+                Action::PickFolders => pick_folders(state, sender.clone()),
+                Action::AddFiles(new_files) => {
+                    state.async_action = AsyncAction::None;
+                    state.add_files(&new_files);
+                }
+                Action::AddFolders(folders) => {
+                    state.async_action = AsyncAction::None;
+                    state.add_files(&get_files(&folders));
+                }
                 Action::AddWildcard(wildcard) => {
                     state.open_extra_window = OpenWindow::None;
                     add_wildcard(&wildcard, state);
@@ -144,21 +160,40 @@ fn save_selected(files: &[HashedFile], selected_rows: &[usize], columns: &[Table
     }
 }
 
-fn add_files(new_files: Option<Vec<PathBuf>>, state: &mut State) {
-    let new_files = new_files.or_else(|| rfd::FileDialog::new().pick_files());
-
-    if let Some(new_files) = new_files {
-        let new_files: Vec<PathBuf> = new_files.into_iter().filter(|f| f.is_file()).collect();
-        state.add_files(&new_files);
-    }
+fn pick_files(state: &mut State, sender: Sender<Action>) {
+    state.async_action = AsyncAction::FileDialog;
+    std::thread::spawn(move || {
+        let task = rfd::AsyncFileDialog::new().pick_files();
+        futures::executor::block_on(async {
+            if let Some(files) = task.await {
+                sender
+                    .send(Action::AddFiles(
+                        files
+                            .iter()
+                            .map(|f| f.path().to_path_buf())
+                            .filter(|f| f.is_file())
+                            .collect(),
+                    ))
+                    .expect("The receiver should always be available");
+            }
+        });
+    });
 }
 
-fn add_folders(folders: Option<Vec<PathBuf>>, state: &mut State) {
-    let folders = folders.or_else(|| rfd::FileDialog::new().pick_folders());
-
-    if let Some(folders) = folders {
-        state.add_files(&get_files(&folders));
-    }
+fn pick_folders(state: &mut State, sender: Sender<Action>) {
+    state.async_action = AsyncAction::FileDialog;
+    std::thread::spawn(move || {
+        let task = rfd::AsyncFileDialog::new().pick_folders();
+        futures::executor::block_on(async {
+            if let Some(folders) = task.await {
+                sender
+                    .send(Action::AddFolders(
+                        folders.iter().map(|f| f.path().to_path_buf()).collect(),
+                    ))
+                    .expect("The receiver should always be available");
+            }
+        });
+    });
 }
 
 fn add_wildcard(wildcard: &str, state: &mut State) {

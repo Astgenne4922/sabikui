@@ -12,11 +12,11 @@ pub fn menu(ui: &mut Ui) -> Vec<Action> {
 
     ui.menu_button(labels::FILE_MENU, |ui| {
         if shortcut_button(ui, labels::ADD_FILE, shortcuts::ADD_FILE).clicked() {
-            events.push(Action::AddFiles(None));
+            events.push(Action::PickFiles);
         }
 
         if shortcut_button(ui, labels::ADD_FOLDER, shortcuts::ADD_FOLDER).clicked() {
-            events.push(Action::AddFolders(None));
+            events.push(Action::PickFolders);
         }
 
         if shortcut_button(ui, labels::ADD_WILDCARD, shortcuts::ADD_WILDCARD).clicked() {

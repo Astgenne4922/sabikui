@@ -1,6 +1,6 @@
 use crate::gui::{
     actions::Action,
-    data::state::{OpenWindow, State},
+    data::state::{AsyncAction, OpenWindow, State},
     utils::wildcard_window,
 };
 use egui::{MenuBar, TopBottomPanel};
@@ -26,7 +26,7 @@ impl Menu {
         let mut events = Vec::new();
 
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            if state.open_extra_window != OpenWindow::None {
+            if state.open_extra_window != OpenWindow::None || state.async_action != AsyncAction::None {
                 ui.disable();
             }
 

@@ -29,11 +29,11 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
         ui.separator();
 
         if ui.button(icons::ADD_FILE).on_hover_text(labels::ADD_FILE).clicked() {
-            events.push(Action::AddFiles(None));
+            events.push(Action::PickFiles);
         }
 
         if ui.button(icons::ADD_FOLDER).on_hover_text(labels::ADD_FOLDER).clicked() {
-            events.push(Action::AddFolders(None));
+            events.push(Action::PickFolders);
         }
 
         if ui

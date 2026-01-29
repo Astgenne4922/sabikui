@@ -20,6 +20,12 @@ pub enum OpenWindow {
     AddWildcard,
 }
 
+#[derive(PartialEq, Eq)]
+pub enum AsyncAction {
+    None,
+    FileDialog,
+}
+
 pub struct State {
     files: Vec<HashedFile>,
     columns: Vec<(TableColumns, bool)>,
@@ -33,6 +39,7 @@ pub struct State {
     pub drag_start: Option<(Pos2, Vec2)>,
     pub drag_start_index: Option<usize>,
     pub open_extra_window: OpenWindow,
+    pub async_action: AsyncAction,
 }
 
 impl Default for State {
@@ -57,6 +64,7 @@ impl Default for State {
             drag_start: None,
             drag_start_index: None,
             open_extra_window: OpenWindow::None,
+            async_action: AsyncAction::None,
         }
     }
 }
@@ -86,6 +94,7 @@ impl State {
     }
 
     pub fn refresh(&mut self) {
+        // TODO async
         self.files = HashedFile::build_vec(
             &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
             &self.algorithm_list(),
@@ -152,6 +161,7 @@ impl State {
     }
 
     pub fn add_files(&mut self, files: &[PathBuf]) {
+        // TODO async
         let mapped_files: Vec<_> = self.files.iter().map(HashedFile::get_path).collect();
         self.files.extend(HashedFile::build_vec(
             &files
@@ -177,6 +187,7 @@ impl State {
     }
 
     pub fn toggle_column(&mut self, column: &TableColumns) {
+        // TODO async
         let (column, is_checked) = self
             .columns
             .iter_mut()
@@ -315,6 +326,7 @@ impl<'de> Deserialize<'de> for State {
             drag_start: None,
             drag_start_index: None,
             open_extra_window: OpenWindow::None,
+            async_action: AsyncAction::None,
         })
     }
 }

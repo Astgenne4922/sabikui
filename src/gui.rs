@@ -106,9 +106,9 @@ impl App for Sabikui {
             let mut events = Vec::new();
 
             if !i.raw.dropped_files.is_empty() {
-                events.push(Action::AddFolders(Some(
+                events.push(Action::AddFolders(
                     i.raw.dropped_files.iter().map(|f| f.path.clone().unwrap()).collect(),
-                )));
+                ));
             }
 
             for (shortcut, action) in shortcuts::KEYBINDS {
@@ -133,7 +133,7 @@ impl App for Sabikui {
             }
         });
 
-        self.action_handler.handle(&mut self.state);
+        self.action_handler.handle(&mut self.state, &self.message_sender);
         if let Some(to_copy) = self.state.to_copy.take() {
             ctx.copy_text(to_copy);
         }
