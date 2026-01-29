@@ -61,7 +61,7 @@ pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl
 }
 
 pub fn open_window(
-    ctx: &Context, title: String, add_content: impl FnOnce(&mut Ui) -> Option<Vec<Action>>,
+    ctx: &Context, title: String, enabled: bool, add_content: impl FnOnce(&mut Ui) -> Option<Vec<Action>>,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
@@ -70,6 +70,7 @@ pub fn open_window(
         .collapsible(false)
         .resizable(false)
         .open(&mut open)
+        .enabled(enabled)
         .show(ctx, |ui| {
             if let Some(output) = add_content(ui) {
                 events.extend(output);
@@ -83,7 +84,8 @@ pub fn open_window(
 }
 
 pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
-    open_window(ctx, labels::ADD_WILDCARD.to_string(), |ui| {
+    let open_dialog: bool = ctx.data(|data| data.get_temp("wildcard_pick_folder".into()).unwrap_or_default());
+    open_window(ctx, labels::ADD_WILDCARD.to_string(), !open_dialog, |ui| {
         let mut events = Vec::new();
         let mut text: String = ctx.data(|data| data.get_temp("add_wildcard_text".into()).unwrap_or_default());
 
@@ -91,11 +93,23 @@ pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
 
         ui.horizontal(|ui| {
             ui.text_edit_singleline(&mut text);
-            if ui.button("...").clicked()
-                && let Some(folder) = rfd::FileDialog::new().pick_folder()
-            // TODO oh no
-            {
-                text = folder.display().to_string();
+            if ui.button("...").clicked() {
+                let task = rfd::AsyncFileDialog::new().pick_folder();
+                let ctx = ctx.clone();
+                ctx.data_mut(|data| {
+                    data.insert_temp("wildcard_pick_folder".into(), true);
+                });
+
+                std::thread::spawn(move || {
+                    let folder = futures::executor::block_on(task);
+
+                    ctx.data_mut(|data| {
+                        data.insert_temp("wildcard_pick_folder".into(), false);
+                        if let Some(folder) = folder {
+                            data.insert_temp("add_wildcard_text".into(), folder.path().display().to_string());
+                        }
+                    });
+                });
             }
         });
 

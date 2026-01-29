@@ -41,7 +41,7 @@ pub fn menu(
     });
 
     if state.open_extra_window == OpenWindow::ChooseColunms {
-        events.extend(open_window(ui.ctx(), labels::CHOOSE_COLUMNS.to_string(), |ui| {
+        events.extend(open_window(ui.ctx(), labels::CHOOSE_COLUMNS.to_string(), true, |ui| {
             Some(choose_columns(ui, columns))
         }));
     }

@@ -23,13 +23,13 @@ pub fn menu(ui: &mut Ui, state: &State) -> Vec<Action> {
 
     match state.open_extra_window {
         OpenWindow::About => {
-            events.extend(open_window(ui.ctx(), labels::ABOUT.to_string(), |ui| {
+            events.extend(open_window(ui.ctx(), labels::ABOUT.to_string(), true, |ui| {
                 about(ui);
                 None
             }));
         }
         OpenWindow::Keybinds => {
-            events.extend(open_window(ui.ctx(), labels::KEYBINDS.to_string(), |ui| {
+            events.extend(open_window(ui.ctx(), labels::KEYBINDS.to_string(), true, |ui| {
                 keybinds(ui);
                 None
             }));
