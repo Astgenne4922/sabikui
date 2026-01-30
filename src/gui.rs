@@ -1,5 +1,5 @@
 use crate::gui::{
-    actions::{Action, ActionHandler},
+    actions::{Action, ActionHandler, files::FileAction, selection::SelectionAction},
     config::{
         state::{load_config, save_config},
         theme::{self, Theme, save_theme},
@@ -121,9 +121,9 @@ impl App for Sabikui {
             let mut events = Vec::new();
 
             if !i.raw.dropped_files.is_empty() {
-                events.push(Action::AddFolders(
+                events.push(Action::Files(FileAction::AddFolders(
                     i.raw.dropped_files.iter().map(|f| f.path.clone().unwrap()).collect(),
-                ));
+                )));
             }
 
             for (shortcut, action) in shortcuts::KEYBINDS {
@@ -134,9 +134,9 @@ impl App for Sabikui {
 
             for event in &i.events {
                 match event {
-                    Event::Copy => events.push(Action::CopySelected),
-                    Event::Paste(to_paste) => events.push(Action::Paste(to_paste.clone())),
-                    Event::Cut => events.push(Action::ClearAll),
+                    Event::Copy => events.push(Action::Selection(SelectionAction::CopySelected)),
+                    Event::Paste(to_paste) => events.push(Action::Files(FileAction::Paste(to_paste.clone()))),
+                    Event::Cut => events.push(Action::Selection(SelectionAction::ClearAll)),
                     _ => {}
                 }
             }

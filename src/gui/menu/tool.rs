@@ -1,7 +1,7 @@
 use egui::{FontId, Ui};
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, files::FileAction, selection::SelectionAction, window::WindowAction},
     constants::{icons, labels},
     data::state::OpenWindow,
 };
@@ -19,21 +19,21 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
             .on_hover_text(labels::SAVE_SELECTED)
             .clicked()
         {
-            events.push(Action::SaveSelected);
+            events.push(Action::Selection(SelectionAction::SaveSelected));
         }
 
         if ui.button(icons::REFRESH).on_hover_text(labels::REFRESH).clicked() {
-            events.push(Action::Refresh);
+            events.push(Action::Files(FileAction::Refresh));
         }
 
         ui.separator();
 
         if ui.button(icons::ADD_FILE).on_hover_text(labels::ADD_FILE).clicked() {
-            events.push(Action::PickFiles);
+            events.push(Action::Files(FileAction::PickFiles));
         }
 
         if ui.button(icons::ADD_FOLDER).on_hover_text(labels::ADD_FOLDER).clicked() {
-            events.push(Action::PickFolders);
+            events.push(Action::Files(FileAction::PickFolders));
         }
 
         if ui
@@ -41,13 +41,15 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
             .on_hover_text(labels::ADD_WILDCARD)
             .clicked()
         {
-            events.push(Action::OpenExternalWindow(OpenWindow::AddWildcard));
+            events.push(Action::Window(WindowAction::OpenExternalWindow(
+                OpenWindow::AddWildcard,
+            )));
         }
 
         ui.separator();
 
         if ui.button(icons::SELECT_ALL).on_hover_text(labels::SELECT_ALL).clicked() {
-            events.push(Action::SelectAll);
+            events.push(Action::Selection(SelectionAction::SelectAll));
         }
 
         if ui
@@ -55,11 +57,11 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
             .on_hover_text(labels::COPY_SELECTED)
             .clicked()
         {
-            events.push(Action::ClearSelected);
+            events.push(Action::Selection(SelectionAction::ClearSelected));
         }
 
         if ui.button(icons::CLEAR_ALL).on_hover_text(labels::CLEAR_ALL).clicked() {
-            events.push(Action::ClearAll);
+            events.push(Action::Selection(SelectionAction::ClearAll));
         }
     });
 

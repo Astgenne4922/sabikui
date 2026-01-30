@@ -2,7 +2,7 @@ use egui::Color32;
 use egui_extras::TableRow;
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, selection::SelectionAction},
     constants::colors,
     data::{state::State, table_columns::TableColumns},
     table::context_menu,
@@ -62,13 +62,13 @@ pub fn rows(row: &mut TableRow, columns: &[TableColumns], state: &State) -> Vec<
                 *state.last_selected()..=index
             };
 
-            events.push(Action::SelectRowRange(range));
+            events.push(Action::Selection(SelectionAction::SelectRowRange(range)));
         } else if row.response().ctx.input(|i| i.modifiers.command_only()) {
             // CTRL LEFT CLICK
-            events.push(Action::AddRowToSelection(index));
+            events.push(Action::Selection(SelectionAction::AddRowToSelection(index)));
         } else {
             // LEFT CLICK
-            events.push(Action::SelectSingleRow(index));
+            events.push(Action::Selection(SelectionAction::SelectSingleRow(index)));
         }
     }
 

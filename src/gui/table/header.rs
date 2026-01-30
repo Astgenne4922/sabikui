@@ -1,6 +1,10 @@
 use egui::{Button, Color32, RichText, Stroke, Ui};
 
-use crate::gui::{actions::Action, constants::icons, data::table_columns::TableColumns};
+use crate::gui::{
+    actions::{Action, options::OptionsAction},
+    constants::icons,
+    data::table_columns::TableColumns,
+};
 
 pub fn button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(TableColumns, bool)>) -> Option<Action> {
     let label = if let Some((col, is_reversed)) = sorting_column
@@ -29,5 +33,5 @@ pub fn button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(Table
             .right_text(label),
     )
     .clicked()
-    .then_some(Action::SortBy(column.clone()))
+    .then_some(Action::Options(OptionsAction::SortBy(column.clone())))
 }

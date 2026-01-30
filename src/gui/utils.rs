@@ -4,7 +4,7 @@ use egui::{
 };
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, files::FileAction, window::WindowAction},
     constants::{icons, labels},
     data::table_columns::TableColumns,
 };
@@ -77,7 +77,7 @@ pub fn open_window(
             }
         });
     if !open {
-        events.push(Action::CloseExternalWindow);
+        events.push(Action::Window(WindowAction::CloseExternalWindow));
     }
 
     events
@@ -117,11 +117,11 @@ pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
 
         ui.horizontal(|ui| {
             if ui.button(labels::OK).clicked() {
-                events.push(Action::AddWildcard(text.clone()));
+                events.push(Action::Files(FileAction::AddWildcard(text.clone())));
             }
 
             if ui.button(labels::CANCEL).clicked() {
-                events.push(Action::CloseExternalWindow);
+                events.push(Action::Window(WindowAction::CloseExternalWindow));
             }
         });
 

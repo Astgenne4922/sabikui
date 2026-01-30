@@ -3,7 +3,7 @@ use egui::{
 };
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, files::FileAction, options::OptionsAction, selection::SelectionAction, window::WindowAction},
     constants::labels,
     data::{
         state::{OpenWindow, State},
@@ -19,15 +19,17 @@ pub fn menu(
 
     ui.menu_button(labels::OPTIONS_MENU, |ui| {
         if ui.button(labels::CHOOSE_COLUMNS).clicked() {
-            events.push(Action::OpenExternalWindow(OpenWindow::ChooseColunms));
+            events.push(Action::Window(WindowAction::OpenExternalWindow(
+                OpenWindow::ChooseColunms,
+            )));
         }
 
         if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
-            events.push(Action::ToggleMarkSame);
+            events.push(Action::Options(OptionsAction::ToggleMarkSame));
         }
 
         if check_button(ui, labels::ALWAYS_ON_TOP, always_on_top).clicked() {
-            events.push(Action::ToggleAlwaysOnTop);
+            events.push(Action::Options(OptionsAction::ToggleAlwaysOnTop));
             if *state.always_on_top() {
                 ui.ctx()
                     .send_viewport_cmd(ViewportCommand::WindowLevel(WindowLevel::Normal));
@@ -71,7 +73,7 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
                                 let mut check = *is_checked;
                                 let response = ui.checkbox(&mut check, RichText::new(column.to_string()).heading());
                                 if response.changed() {
-                                    events.push(Action::ToggleColumn(column.clone()));
+                                    events.push(Action::Files(FileAction::ToggleColumn(column.clone())));
                                 }
                             });
                         })
@@ -80,7 +82,7 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
             });
 
             if let Some(update) = response.final_update() {
-                events.push(Action::DragColumn(update));
+                events.push(Action::Selection(SelectionAction::DragColumn(update)));
             }
         });
 

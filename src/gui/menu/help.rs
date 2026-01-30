@@ -1,7 +1,7 @@
 use egui::{Grid, ModifierNames, RichText, Ui};
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, files::FileAction, selection::SelectionAction, window::WindowAction},
     constants::{
         labels,
         shortcuts::{self, KEYBINDS},
@@ -14,10 +14,10 @@ pub fn menu(ui: &mut Ui, state: &State) -> Vec<Action> {
     let mut events = Vec::new();
     ui.menu_button(labels::HELP_MENU, |ui| {
         if ui.button(labels::ABOUT).clicked() {
-            events.push(Action::OpenExternalWindow(OpenWindow::About));
+            events.push(Action::Window(WindowAction::OpenExternalWindow(OpenWindow::About)));
         }
         if ui.button(labels::KEYBINDS).clicked() {
-            events.push(Action::OpenExternalWindow(OpenWindow::Keybinds));
+            events.push(Action::Window(WindowAction::OpenExternalWindow(OpenWindow::Keybinds)));
         }
     });
 
@@ -60,14 +60,14 @@ fn keybinds(ui: &mut Ui) {
 
         for (shortcut, action) in KEYBINDS {
             let label = match action {
-                Action::Refresh => labels::REFRESH,
-                Action::SelectAll => labels::SELECT_ALL,
-                Action::DeselectAll => labels::DESELECT_ALL,
-                Action::SaveSelected => labels::SAVE_SELECTED,
-                Action::ClearSelected => labels::CLEAR_SELECTED,
-                Action::AddFiles(_) => labels::ADD_FILE,
-                Action::AddFolders(_) => labels::ADD_FOLDER,
-                Action::OpenExternalWindow(OpenWindow::AddWildcard) => labels::ADD_WILDCARD,
+                Action::Files(FileAction::Refresh) => labels::REFRESH,
+                Action::Selection(SelectionAction::SelectAll) => labels::SELECT_ALL,
+                Action::Selection(SelectionAction::DeselectAll) => labels::DESELECT_ALL,
+                Action::Selection(SelectionAction::SaveSelected) => labels::SAVE_SELECTED,
+                Action::Selection(SelectionAction::ClearSelected) => labels::CLEAR_SELECTED,
+                Action::Files(FileAction::AddFiles(_)) => labels::ADD_FILE,
+                Action::Files(FileAction::AddFolders(_)) => labels::ADD_FOLDER,
+                Action::Window(WindowAction::OpenExternalWindow(OpenWindow::AddWildcard)) => labels::ADD_WILDCARD,
                 _ => unreachable!(),
             };
             ui.heading(label);

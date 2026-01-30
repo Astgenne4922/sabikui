@@ -1,6 +1,9 @@
 use egui::{Key, KeyboardShortcut, Modifiers};
 
-use crate::gui::{actions::Action, data::state::OpenWindow};
+use crate::gui::{
+    actions::{Action, files::FileAction, selection::SelectionAction, window::WindowAction},
+    data::state::OpenWindow,
+};
 
 pub const ADD_FILE: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F1);
 pub const ADD_FOLDER: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F2);
@@ -17,12 +20,15 @@ pub const DESELECT_ALL: KeyboardShortcut = KeyboardShortcut::new(Modifiers::COMM
 pub const REFRESH: KeyboardShortcut = KeyboardShortcut::new(Modifiers::NONE, Key::F5);
 
 pub const KEYBINDS: [(&KeyboardShortcut, Action); 8] = [
-    (&SELECT_ALL, Action::SelectAll),
-    (&DESELECT_ALL, Action::DeselectAll),
-    (&SAVE_SELECTED, Action::SaveSelected),
-    (&ADD_FILE, Action::PickFiles),
-    (&ADD_FOLDER, Action::PickFolders),
-    (&ADD_WILDCARD, Action::OpenExternalWindow(OpenWindow::AddWildcard)),
-    (&REFRESH, Action::Refresh),
-    (&CLEAR_SELECTED, Action::ClearSelected),
+    (&SELECT_ALL, Action::Selection(SelectionAction::SelectAll)),
+    (&DESELECT_ALL, Action::Selection(SelectionAction::DeselectAll)),
+    (&SAVE_SELECTED, Action::Selection(SelectionAction::SaveSelected)),
+    (&ADD_FILE, Action::Files(FileAction::PickFiles)),
+    (&ADD_FOLDER, Action::Files(FileAction::PickFolders)),
+    (
+        &ADD_WILDCARD,
+        Action::Window(WindowAction::OpenExternalWindow(OpenWindow::AddWildcard)),
+    ),
+    (&REFRESH, Action::Files(FileAction::Refresh)),
+    (&CLEAR_SELECTED, Action::Selection(SelectionAction::ClearSelected)),
 ];

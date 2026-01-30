@@ -1,7 +1,7 @@
 use egui::{Event, Ui};
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, files::FileAction, options::OptionsAction, selection::SelectionAction},
     constants::{labels, shortcuts},
     data::table_columns::TableColumns,
     utils::{long_submenu, shortcut_button},
@@ -12,14 +12,14 @@ pub fn menu(ui: &mut Ui, active_columns: &[TableColumns]) -> Vec<Action> {
 
     ui.menu_button(labels::EDIT_MENU, |ui| {
         if shortcut_button(ui, labels::COPY_SELECTED, shortcuts::COPY_SELECTED).clicked() {
-            events.push(Action::CopySelected);
+            events.push(Action::Selection(SelectionAction::CopySelected));
         }
 
         if shortcut_button(ui, labels::EXPLORER_PASTE, shortcuts::EXPLORER_PASTE).clicked() {
             ui.ctx().input(|i| {
                 for event in &i.events {
                     if let Event::Paste(to_paste) = event {
-                        events.push(Action::Paste(to_paste.clone()));
+                        events.push(Action::Files(FileAction::Paste(to_paste.clone())));
                     }
                 }
             });
@@ -29,18 +29,18 @@ pub fn menu(ui: &mut Ui, active_columns: &[TableColumns]) -> Vec<Action> {
 
         long_submenu(ui, labels::COPY, active_columns, |ui, col| {
             if ui.button(col.to_string()).clicked() {
-                events.push(Action::CopyProperty(col.clone()));
+                events.push(Action::Options(OptionsAction::CopyProperty(col.clone())));
             }
         });
 
         ui.separator();
 
         if shortcut_button(ui, labels::SELECT_ALL, shortcuts::SELECT_ALL).clicked() {
-            events.push(Action::SelectAll);
+            events.push(Action::Selection(SelectionAction::SelectAll));
         }
 
         if shortcut_button(ui, labels::DESELECT_ALL, shortcuts::DESELECT_ALL).clicked() {
-            events.push(Action::DeselectAll);
+            events.push(Action::Selection(SelectionAction::DeselectAll));
         }
     });
 

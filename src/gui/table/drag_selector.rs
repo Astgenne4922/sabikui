@@ -1,17 +1,20 @@
 use egui::{Color32, Painter, Rect, Response, Stroke, StrokeKind, vec2};
 
-use crate::gui::{actions::Action, data::state::State};
+use crate::gui::{
+    actions::{Action, selection::SelectionAction},
+    data::state::State,
+};
 
 pub fn show(painter: &Painter, response: &Response, state: &State, x_offset: f32, y_offset: f32) -> Vec<Action> {
     let mut events = Vec::new();
     if response.drag_started() {
-        events.push(Action::StartDrag(
+        events.push(Action::Selection(SelectionAction::StartDrag(
             response.interact_pointer_pos().unwrap(),
             vec2(x_offset, y_offset),
-        ));
+        )));
     }
     if response.drag_stopped() {
-        events.push(Action::EndDrag);
+        events.push(Action::Selection(SelectionAction::EndDrag));
     }
 
     if let (Some(pointer_pos), Some((drag_start, start_offset))) = (response.interact_pointer_pos(), state.drag_start) {
@@ -55,7 +58,7 @@ pub fn handle(visible_rows: &[(Response, usize)], drag_response: &Response, stat
         }
 
         if drag_response.drag_started() && row_response.contains_pointer() {
-            events.push(Action::SetDragSelectionIndex(*row_index));
+            events.push(Action::Selection(SelectionAction::SetDragSelectionIndex(*row_index)));
         }
     }
 
@@ -80,17 +83,17 @@ pub fn handle(visible_rows: &[(Response, usize)], drag_response: &Response, stat
             && first_y > drag_start_pos.y
         {
             if pointer_pos.y > first_y {
-                events.push(Action::SetDragSelectionIndex(*first_idx));
+                events.push(Action::Selection(SelectionAction::SetDragSelectionIndex(*first_idx)));
             } else {
-                events.push(Action::ResetDragSelectionIndex);
+                events.push(Action::Selection(SelectionAction::ResetDragSelectionIndex));
             }
         } else if let Some((last_y, last_idx)) = last_visible_row
             && last_y < drag_start_pos.y
         {
             if pointer_pos.y < last_y {
-                events.push(Action::SetDragSelectionIndex(*last_idx));
+                events.push(Action::Selection(SelectionAction::SetDragSelectionIndex(*last_idx)));
             } else {
-                events.push(Action::ResetDragSelectionIndex);
+                events.push(Action::Selection(SelectionAction::ResetDragSelectionIndex));
             }
         }
     }
@@ -101,7 +104,7 @@ pub fn handle(visible_rows: &[(Response, usize)], drag_response: &Response, stat
         } else {
             *drag_end_index..=drag_start_index
         };
-        events.push(Action::SelectRowRange(range));
+        events.push(Action::Selection(SelectionAction::SelectRowRange(range)));
     }
 
     events

@@ -1,7 +1,7 @@
 use egui::Ui;
 
 use crate::gui::{
-    actions::Action,
+    actions::{Action, files::FileAction, selection::SelectionAction, window::WindowAction},
     constants::{labels, shortcuts},
     data::state::OpenWindow,
     utils::shortcut_button,
@@ -12,31 +12,33 @@ pub fn menu(ui: &mut Ui) -> Vec<Action> {
 
     ui.menu_button(labels::FILE_MENU, |ui| {
         if shortcut_button(ui, labels::ADD_FILE, shortcuts::ADD_FILE).clicked() {
-            events.push(Action::PickFiles);
+            events.push(Action::Files(FileAction::PickFiles));
         }
 
         if shortcut_button(ui, labels::ADD_FOLDER, shortcuts::ADD_FOLDER).clicked() {
-            events.push(Action::PickFolders);
+            events.push(Action::Files(FileAction::PickFolders));
         }
 
         if shortcut_button(ui, labels::ADD_WILDCARD, shortcuts::ADD_WILDCARD).clicked() {
-            events.push(Action::OpenExternalWindow(OpenWindow::AddWildcard));
+            events.push(Action::Window(WindowAction::OpenExternalWindow(
+                OpenWindow::AddWildcard,
+            )));
         }
 
         ui.separator();
 
         if shortcut_button(ui, labels::SAVE_SELECTED, shortcuts::SAVE_SELECTED).clicked() {
-            events.push(Action::SaveSelected);
+            events.push(Action::Selection(SelectionAction::SaveSelected));
         }
 
         ui.separator();
 
         if shortcut_button(ui, labels::CLEAR_ALL, shortcuts::CLEAR_ALL).clicked() {
-            events.push(Action::ClearAll);
+            events.push(Action::Selection(SelectionAction::ClearAll));
         }
 
         if shortcut_button(ui, labels::CLEAR_SELECTED, shortcuts::CLEAR_SELECTED).clicked() {
-            events.push(Action::ClearSelected);
+            events.push(Action::Selection(SelectionAction::ClearSelected));
         }
 
         ui.separator();

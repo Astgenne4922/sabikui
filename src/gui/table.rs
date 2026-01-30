@@ -2,7 +2,10 @@ use egui::{Rect, ScrollArea, Sense, TextStyle, Ui, scroll_area::ScrollSource, st
 use egui_extras::{Column, TableBuilder};
 use std::sync::mpsc::Sender;
 
-use crate::gui::{actions::Action, data::state::State};
+use crate::gui::{
+    actions::{Action, selection::SelectionAction},
+    data::state::State,
+};
 
 mod body;
 mod context_menu;
@@ -91,7 +94,7 @@ impl Table {
             });
 
         if ui.response().clicked() {
-            events.push(Action::DeselectAll);
+            events.push(Action::Selection(SelectionAction::DeselectAll));
         }
 
         events.extend(drag_selector::show(
