@@ -1,7 +1,7 @@
 use std::{
     ops::RangeInclusive,
     path::PathBuf,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, MutexGuard},
 };
 
 use egui::{Pos2, Vec2};
@@ -101,7 +101,7 @@ impl State {
     pub fn refresh(this: Arc<Mutex<Self>>) {
         Self::hash_processing(this, move |this| {
             let (alg_list, files) = {
-                let lock = this.lock().expect("The lock was poisoned");
+                let lock = Self::lock(&this);
 
                 (
                     lock.algorithm_list(),
@@ -111,7 +111,7 @@ impl State {
 
             let refreshed = HashedFile::build_vec(&files, &alg_list);
 
-            let mut lock = this.lock().expect("The lock was poisoned");
+            let mut lock = Self::lock(&this);
             lock.files.extend(refreshed);
             let sorting_column = &lock.sorting_column;
             if let Some((column, reverse)) = sorting_column.clone() {
@@ -176,16 +176,10 @@ impl State {
     }
 
     pub fn add_files(this: Arc<Mutex<Self>>, files: Vec<PathBuf>) {
-        let mapped_files: Vec<_> = this
-            .lock()
-            .expect("The lock was poisoned")
-            .files
-            .iter()
-            .map(HashedFile::get_path)
-            .collect();
+        let mapped_files: Vec<_> = Self::lock(&this).files.iter().map(HashedFile::get_path).collect();
 
         Self::hash_processing(this, move |this| {
-            let alg_list = this.lock().expect("The lock was poisoned").algorithm_list();
+            let alg_list = Self::lock(&this).algorithm_list();
 
             let new_files = HashedFile::build_vec(
                 &files
@@ -196,7 +190,7 @@ impl State {
                 &alg_list,
             );
 
-            let mut lock = this.lock().expect("The lock was poisoned");
+            let mut lock = Self::lock(&this);
             lock.files.extend(new_files);
             let sorting_column = &lock.sorting_column;
             if let Some((column, reverse)) = sorting_column.clone() {
@@ -215,7 +209,7 @@ impl State {
     }
 
     pub fn toggle_column(this: Arc<Mutex<Self>>, column: &TableColumns) {
-        let lock = this.lock().expect("The lock was poisoned");
+        let lock = Self::lock(&this);
         let (column, is_checked) = {
             let (column, is_checked) = lock
                 .columns
@@ -230,16 +224,10 @@ impl State {
         if let TableColumns::Algorithms(alg) = column.clone() {
             if is_checked {
                 Self::hash_processing(this, move |this| {
-                    let files: Vec<_> = this
-                        .lock()
-                        .expect("The lock was poisoned")
-                        .files
-                        .iter()
-                        .map(HashedFile::get_path)
-                        .collect();
+                    let files: Vec<_> = Self::lock(&this).files.iter().map(HashedFile::get_path).collect();
                     let new_column = one_hash_many_files(&alg, &files);
 
-                    let mut lock = this.lock().expect("The lock was poisoned");
+                    let mut lock = Self::lock(&this);
                     for (i, hash) in new_column.iter().enumerate() {
                         lock.files[i].add_digest_for(&alg, hash);
                     }
@@ -255,7 +243,7 @@ impl State {
                     drop(lock);
                 });
             } else {
-                let mut lock = this.lock().expect("The lock was poisoned");
+                let mut lock = Self::lock(&this);
                 for file in &mut lock.files {
                     file.remove_digest(&alg);
                 }
@@ -328,11 +316,11 @@ impl State {
         F: FnOnce(Arc<Mutex<Self>>) + Send + 'static,
     {
         std::thread::spawn(move || {
-            this.lock().expect("The lock was poisoned").async_action = AsyncAction::HashProcessing;
+            Self::lock(&this).async_action = AsyncAction::HashProcessing;
 
             to_process(Arc::clone(&this));
 
-            this.lock().expect("The lock was poisoned").async_action = AsyncAction::None;
+            Self::lock(&this).async_action = AsyncAction::None;
         });
     }
 

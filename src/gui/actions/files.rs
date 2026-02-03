@@ -35,8 +35,8 @@ pub fn handle(state: Arc<Mutex<State>>, action: &FileAction, sender: &Sender<Act
                 .collect();
             State::add_files(state, pasted_lines);
         }
-        FileAction::PickFiles => pick_files(&mut state.lock().expect("The lock was poisoned"), sender.clone()),
-        FileAction::PickFolders => pick_folders(&mut state.lock().expect("The lock was poisoned"), sender.clone()),
+        FileAction::PickFiles => pick_files(&mut State::lock(&state), sender.clone()),
+        FileAction::PickFolders => pick_folders(&mut State::lock(&state), sender.clone()),
         FileAction::AddFiles(new_files) => {
             State::add_files(state, new_files.clone());
         }
@@ -44,7 +44,7 @@ pub fn handle(state: Arc<Mutex<State>>, action: &FileAction, sender: &Sender<Act
             State::add_files(state, get_files(folders));
         }
         FileAction::AddWildcard(wildcard) => {
-            state.lock().expect("The lock was poisoned").open_extra_window = OpenWindow::None;
+            State::lock(&state).open_extra_window = OpenWindow::None;
 
             if let Ok(paths) = glob::glob(wildcard) {
                 let list = paths.filter_map(Result::ok).collect::<Vec<_>>();

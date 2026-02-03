@@ -90,7 +90,7 @@ impl Sabikui {
 
 impl Drop for Sabikui {
     fn drop(&mut self) {
-        save_config(&self.state.lock().expect("The lock was poisoned"));
+        save_config(&State::lock(&self.state));
 
         save_theme(&self.dark_theme, theme::Mode::Dark);
         save_theme(&self.light_theme, theme::Mode::Light);
@@ -100,13 +100,13 @@ impl Drop for Sabikui {
 impl App for Sabikui {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            let state = self.state.lock().expect("The lock was poisoned");
+            let state = State::lock(&self.state);
             disable_ui(ui, &state);
             self.menu.show(ui, &state);
         });
 
         TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-            let state = self.state.lock().expect("The lock was poisoned");
+            let state = State::lock(&self.state);
             disable_ui(ui, &state);
             ui.style_mut().interaction.selectable_labels = false;
             ui.horizontal(|ui| {
@@ -119,7 +119,7 @@ impl App for Sabikui {
         });
 
         CentralPanel::default().show(ctx, |ui| {
-            let state = self.state.lock().expect("The lock was poisoned");
+            let state = State::lock(&self.state);
             disable_ui(ui, &state);
             self.table.show(ui, &state);
         });
@@ -155,7 +155,7 @@ impl App for Sabikui {
             }
         });
 
-        let to_copy = self.state.lock().expect("The lock was poisoned").to_copy.take();
+        let to_copy = State::lock(&self.state).to_copy.take();
         if let Some(to_copy) = to_copy {
             ctx.copy_text(to_copy);
         }
