@@ -1,4 +1,8 @@
-use std::{ops::RangeInclusive, path::PathBuf};
+use std::{
+    ops::RangeInclusive,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use egui::{Pos2, Vec2};
 use serde::{Deserialize, Serialize};
@@ -24,6 +28,7 @@ pub enum OpenWindow {
 pub enum AsyncAction {
     None,
     FileDialog,
+    HashProcessing,
 }
 
 pub struct State {
@@ -93,21 +98,31 @@ impl State {
         active_algorithms
     }
 
-    pub fn refresh(&mut self) {
-        // TODO async
-        self.files = HashedFile::build_vec(
-            &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
-            &self.algorithm_list(),
-        );
+    pub fn refresh(this: Arc<Mutex<Self>>) {
+        Self::hash_processing(this, move |this| {
+            let (alg_list, files) = {
+                let lock = this.lock().expect("The lock was poisoned");
 
-        if let Some((column, reverse)) = &self.sorting_column {
-            self.files.sort_by_key(|f| f.get_from_column(column));
-            if *reverse {
-                self.files.reverse();
+                (
+                    lock.algorithm_list(),
+                    lock.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
+                )
+            };
+
+            let refreshed = HashedFile::build_vec(&files, &alg_list);
+
+            let mut lock = this.lock().expect("The lock was poisoned");
+            lock.files.extend(refreshed);
+            let sorting_column = &lock.sorting_column;
+            if let Some((column, reverse)) = sorting_column.clone() {
+                lock.files.sort_by_key(|f| f.get_from_column(&column));
+                if reverse {
+                    lock.files.reverse();
+                }
             }
-        }
 
-        self.pair_same_hashes();
+            lock.pair_same_hashes();
+        });
     }
 
     pub fn select_all(&mut self) {
@@ -160,54 +175,101 @@ impl State {
         self.same_hash_index.clear();
     }
 
-    pub fn add_files(&mut self, files: &[PathBuf]) {
-        // TODO async
-        let mapped_files: Vec<_> = self.files.iter().map(HashedFile::get_path).collect();
-        self.files.extend(HashedFile::build_vec(
-            &files
-                .iter()
-                .filter(|&f| !mapped_files.contains(f))
-                .cloned()
-                .collect::<Vec<_>>(),
-            &self.algorithm_list(),
-        ));
+    pub fn add_files(this: Arc<Mutex<Self>>, files: Vec<PathBuf>) {
+        let mapped_files: Vec<_> = this
+            .lock()
+            .expect("The lock was poisoned")
+            .files
+            .iter()
+            .map(HashedFile::get_path)
+            .collect();
 
-        if let Some((column, reverse)) = &self.sorting_column {
-            self.files.sort_by_key(|f| f.get_from_column(column));
-            if *reverse {
-                self.files.reverse();
+        Self::hash_processing(this, move |this| {
+            let alg_list = this.lock().expect("The lock was poisoned").algorithm_list();
+
+            let new_files = HashedFile::build_vec(
+                &files
+                    .iter()
+                    .filter(|&f| !mapped_files.contains(f))
+                    .cloned()
+                    .collect::<Vec<_>>(),
+                &alg_list,
+            );
+
+            let mut lock = this.lock().expect("The lock was poisoned");
+            lock.files.extend(new_files);
+            let sorting_column = &lock.sorting_column;
+            if let Some((column, reverse)) = sorting_column.clone() {
+                lock.files.sort_by_key(|f| f.get_from_column(&column));
+                if reverse {
+                    lock.files.reverse();
+                }
             }
-        }
 
-        self.pair_same_hashes();
+            lock.pair_same_hashes();
+        });
     }
 
     pub fn update_column_order(&mut self, from: usize, to: usize) {
         egui_dnd::utils::shift_vec(from, to, &mut self.columns);
     }
 
-    pub fn toggle_column(&mut self, column: &TableColumns) {
-        // TODO async
-        let (column, is_checked) = self
-            .columns
-            .iter_mut()
-            .find(|(c, _)| c == column)
-            .expect("The column should always be present");
+    pub fn toggle_column(this: Arc<Mutex<Self>>, column: &TableColumns) {
+        let lock = this.lock().expect("The lock was poisoned");
+        let (column, is_checked) = {
+            let (column, is_checked) = lock
+                .columns
+                .iter()
+                .find(|(c, _)| c == column)
+                .expect("The column should always be present");
 
-        *is_checked = !*is_checked;
-        if let TableColumns::Algorithms(alg) = column {
-            if *is_checked {
-                one_hash_many_files(alg, &self.files.iter().map(HashedFile::get_path).collect::<Vec<_>>())
-                    .iter()
-                    .enumerate()
-                    .for_each(|(i, hash)| self.files[i].add_digest_for(alg, hash));
+            (column.clone(), !*is_checked)
+        };
+        drop(lock);
+
+        if let TableColumns::Algorithms(alg) = column.clone() {
+            if is_checked {
+                Self::hash_processing(this, move |this| {
+                    let files: Vec<_> = this
+                        .lock()
+                        .expect("The lock was poisoned")
+                        .files
+                        .iter()
+                        .map(HashedFile::get_path)
+                        .collect();
+                    let new_column = one_hash_many_files(&alg, &files);
+
+                    let mut lock = this.lock().expect("The lock was poisoned");
+                    for (i, hash) in new_column.iter().enumerate() {
+                        lock.files[i].add_digest_for(&alg, hash);
+                    }
+
+                    let (_, is_checked) = lock
+                        .columns
+                        .iter_mut()
+                        .find(|(c, _)| *c == column)
+                        .expect("The column should always be present");
+                    *is_checked = !*is_checked;
+
+                    lock.pair_same_hashes();
+                    drop(lock);
+                });
             } else {
-                for file in &mut self.files {
-                    file.remove_digest(alg);
+                let mut lock = this.lock().expect("The lock was poisoned");
+                for file in &mut lock.files {
+                    file.remove_digest(&alg);
                 }
-            }
 
-            self.pair_same_hashes();
+                let (_, is_checked) = lock
+                    .columns
+                    .iter_mut()
+                    .find(|(c, _)| *c == column)
+                    .expect("The column should always be present");
+                *is_checked = !*is_checked;
+
+                lock.pair_same_hashes();
+                drop(lock);
+            }
         }
     }
 
@@ -259,6 +321,19 @@ impl State {
                 self.same_hash_index.push(file1.get_digest(alg));
             }
         }
+    }
+
+    fn hash_processing<F>(this: Arc<Mutex<Self>>, to_process: F)
+    where
+        F: FnOnce(Arc<Mutex<Self>>) + Send + 'static,
+    {
+        std::thread::spawn(move || {
+            this.lock().expect("The lock was poisoned").async_action = AsyncAction::HashProcessing;
+
+            to_process(Arc::clone(&this));
+
+            this.lock().expect("The lock was poisoned").async_action = AsyncAction::None;
+        });
     }
 }
 

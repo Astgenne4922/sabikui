@@ -11,7 +11,7 @@ use crate::gui::{
 };
 use eframe::{App, CreationContext, Frame, NativeOptions, run_native};
 use egui::{CentralPanel, Context, Event, FontData, FontDefinitions, FontFamily, TopBottomPanel, Ui};
-use std::sync::{Arc, mpsc};
+use std::sync::{Arc, Mutex, mpsc};
 
 mod actions;
 mod config;
@@ -27,7 +27,7 @@ pub fn run() {
 }
 
 struct Sabikui {
-    state: State,
+    state: Arc<Mutex<State>>,
     dark_theme: Theme,
     light_theme: Theme,
     menu: Menu,
@@ -77,7 +77,7 @@ impl Sabikui {
         let (sx, rx) = mpsc::channel();
 
         Self {
-            state: load_config(),
+            state: Arc::new(Mutex::new(load_config())),
             dark_theme,
             light_theme,
             menu: Menu::new(sx.clone()),
@@ -90,7 +90,7 @@ impl Sabikui {
 
 impl Drop for Sabikui {
     fn drop(&mut self) {
-        save_config(&self.state);
+        save_config(&self.state.lock().expect("The lock was poisoned"));
 
         save_theme(&self.dark_theme, theme::Mode::Dark);
         save_theme(&self.light_theme, theme::Mode::Light);
@@ -100,21 +100,28 @@ impl Drop for Sabikui {
 impl App for Sabikui {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            disable_ui(ui, &self.state);
-            self.menu.show(ui, &self.state);
+            let state = self.state.lock().expect("The lock was poisoned");
+            disable_ui(ui, &state);
+            self.menu.show(ui, &state);
         });
 
         TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-            disable_ui(ui, &self.state);
+            let state = self.state.lock().expect("The lock was poisoned");
+            disable_ui(ui, &state);
             ui.style_mut().interaction.selectable_labels = false;
             ui.horizontal(|ui| {
-                ui.label(format!("{} {}", self.state.files().len(), labels::BOTTOM_BAR_TEXT));
+                ui.label(format!("{} {}", state.files().len(), labels::BOTTOM_BAR_TEXT));
+
+                if state.async_action == AsyncAction::HashProcessing {
+                    ui.spinner();
+                }
             });
         });
 
         CentralPanel::default().show(ctx, |ui| {
-            disable_ui(ui, &self.state);
-            self.table.show(ui, &self.state);
+            let state = self.state.lock().expect("The lock was poisoned");
+            disable_ui(ui, &state);
+            self.table.show(ui, &state);
         });
 
         ctx.input_mut(|i| {
@@ -148,10 +155,12 @@ impl App for Sabikui {
             }
         });
 
-        self.action_handler.handle(&mut self.state, &self.message_sender);
-        if let Some(to_copy) = self.state.to_copy.take() {
+        let to_copy = self.state.lock().expect("The lock was poisoned").to_copy.take();
+        if let Some(to_copy) = to_copy {
             ctx.copy_text(to_copy);
         }
+
+        self.action_handler.handle(&self.state, &self.message_sender);
     }
 }
 

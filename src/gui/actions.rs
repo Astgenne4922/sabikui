@@ -3,7 +3,10 @@ pub mod options;
 pub mod selection;
 pub mod window;
 
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{
+    Arc, Mutex,
+    mpsc::{Receiver, Sender},
+};
 
 use crate::gui::data::state::State;
 
@@ -24,13 +27,15 @@ impl ActionHandler {
         Self { message_receiver }
     }
 
-    pub fn handle(&self, state: &mut State, sender: &Sender<Action>) {
+    pub fn handle(&self, state: &Arc<Mutex<State>>, sender: &Sender<Action>) {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
-                Action::Files(action) => files::handle(state, &action, sender),
-                Action::Selection(action) => selection::handle(state, &action),
-                Action::Options(action) => options::handle(state, &action),
-                Action::Window(action) => window::handle(state, &action),
+                Action::Files(action) => files::handle(Arc::clone(state), &action, sender),
+                Action::Selection(action) => {
+                    selection::handle(&mut state.lock().expect("The lock was poisoned"), &action);
+                }
+                Action::Options(action) => options::handle(&mut state.lock().expect("The lock was poisoned"), &action),
+                Action::Window(action) => window::handle(&mut state.lock().expect("The lock was poisoned"), &action),
             }
         }
     }

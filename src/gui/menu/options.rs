@@ -6,7 +6,7 @@ use crate::gui::{
     actions::{Action, files::FileAction, options::OptionsAction, selection::SelectionAction, window::WindowAction},
     constants::labels,
     data::{
-        state::{OpenWindow, State},
+        state::{AsyncAction, OpenWindow, State},
         table_columns::TableColumns,
     },
     utils::{check_button, open_window},
@@ -44,6 +44,9 @@ pub fn menu(
 
     if state.open_extra_window == OpenWindow::ChooseColunms {
         events.extend(open_window(ui.ctx(), labels::CHOOSE_COLUMNS.to_string(), true, |ui| {
+            if state.async_action == AsyncAction::HashProcessing {
+                ui.disable();
+            }
             Some(choose_columns(ui, columns))
         }));
     }

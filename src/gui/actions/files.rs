@@ -1,4 +1,8 @@
-use std::{collections::VecDeque, path::PathBuf, sync::mpsc::Sender};
+use std::{
+    collections::VecDeque,
+    path::PathBuf,
+    sync::{Arc, Mutex, mpsc::Sender},
+};
 
 use crate::gui::{
     actions::Action,
@@ -20,31 +24,37 @@ pub enum FileAction {
     ToggleColumn(TableColumns),
 }
 
-pub fn handle(state: &mut State, action: &FileAction, sender: &Sender<Action>) {
+pub fn handle(state: Arc<Mutex<State>>, action: &FileAction, sender: &Sender<Action>) {
     match action {
-        FileAction::Refresh => state.refresh(),
-        FileAction::Paste(to_paste) => explorer_paste(to_paste, state),
-        FileAction::PickFiles => pick_files(state, sender.clone()),
-        FileAction::PickFolders => pick_folders(state, sender.clone()),
+        FileAction::Refresh => State::refresh(state),
+        FileAction::Paste(to_paste) => {
+            let pasted_lines: Vec<PathBuf> = to_paste
+                .lines()
+                .map(PathBuf::from)
+                .filter(|path| path.exists())
+                .collect();
+            State::add_files(state, pasted_lines);
+        }
+        FileAction::PickFiles => pick_files(&mut state.lock().expect("The lock was poisoned"), sender.clone()),
+        FileAction::PickFolders => pick_folders(&mut state.lock().expect("The lock was poisoned"), sender.clone()),
         FileAction::AddFiles(new_files) => {
-            state.async_action = AsyncAction::None;
-            state.add_files(new_files);
+            State::add_files(state, new_files.clone());
         }
         FileAction::AddFolders(folders) => {
-            state.async_action = AsyncAction::None;
-            state.add_files(&get_files(folders));
+            State::add_files(state, get_files(folders));
         }
         FileAction::AddWildcard(wildcard) => {
-            state.open_extra_window = OpenWindow::None;
-            add_wildcard(wildcard, state);
-        }
-        FileAction::ToggleColumn(table_column) => state.toggle_column(table_column),
-    }
-}
+            state.lock().expect("The lock was poisoned").open_extra_window = OpenWindow::None;
 
-fn explorer_paste(pasted: &str, state: &mut State) {
-    let pasted_lines: Vec<PathBuf> = pasted.lines().map(PathBuf::from).filter(|path| path.exists()).collect();
-    state.add_files(&pasted_lines);
+            if let Ok(paths) = glob::glob(wildcard) {
+                let list = paths.filter_map(Result::ok).collect::<Vec<_>>();
+                State::add_files(state, get_files(&list));
+            }
+        }
+        FileAction::ToggleColumn(table_column) => {
+            State::toggle_column(state, table_column);
+        }
+    }
 }
 
 fn pick_files(state: &mut State, sender: Sender<Action>) {
@@ -81,13 +91,6 @@ fn pick_folders(state: &mut State, sender: Sender<Action>) {
             }
         });
     });
-}
-
-fn add_wildcard(wildcard: &str, state: &mut State) {
-    if let Ok(paths) = glob::glob(wildcard) {
-        let list = paths.filter_map(Result::ok).collect::<Vec<_>>();
-        state.add_files(&get_files(&list));
-    }
 }
 
 fn get_files(paths: &[PathBuf]) -> Vec<PathBuf> {
