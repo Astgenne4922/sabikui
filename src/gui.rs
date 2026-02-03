@@ -128,7 +128,7 @@ impl App for Sabikui {
             let mut events = Vec::new();
 
             if !i.raw.dropped_files.is_empty() {
-                events.push(Action::Files(FileAction::AddFolders(
+                events.push(Action::Files(FileAction::DroppedItems(
                     i.raw.dropped_files.iter().map(|f| f.path.clone().unwrap()).collect(),
                 )));
             }
@@ -160,7 +160,7 @@ impl App for Sabikui {
             ctx.copy_text(to_copy);
         }
 
-        self.action_handler.handle(&self.state, &self.message_sender);
+        self.action_handler.handle(&self.state);
     }
 }
 

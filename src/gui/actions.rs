@@ -3,10 +3,7 @@ pub mod options;
 pub mod selection;
 pub mod window;
 
-use std::sync::{
-    Arc, Mutex,
-    mpsc::{Receiver, Sender},
-};
+use std::sync::{Arc, Mutex, mpsc::Receiver};
 
 use crate::gui::data::state::State;
 
@@ -27,10 +24,10 @@ impl ActionHandler {
         Self { message_receiver }
     }
 
-    pub fn handle(&self, state: &Arc<Mutex<State>>, sender: &Sender<Action>) {
+    pub fn handle(&self, state: &Arc<Mutex<State>>) {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
-                Action::Files(action) => files::handle(Arc::clone(state), &action, sender),
+                Action::Files(action) => files::handle(Arc::clone(state), &action),
                 Action::Selection(action) => selection::handle(Arc::clone(state), &action),
                 Action::Options(action) => options::handle(&mut State::lock(state), &action),
                 Action::Window(action) => window::handle(&mut State::lock(state), &action),

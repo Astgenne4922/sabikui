@@ -1,15 +1,12 @@
 use std::{
     collections::VecDeque,
     path::PathBuf,
-    sync::{Arc, Mutex, mpsc::Sender},
+    sync::{Arc, Mutex},
 };
 
-use crate::gui::{
-    actions::Action,
-    data::{
-        state::{AsyncAction, OpenWindow, State},
-        table_columns::TableColumns,
-    },
+use crate::gui::data::{
+    state::{AsyncAction, OpenWindow, State},
+    table_columns::TableColumns,
 };
 
 #[derive(Clone)]
@@ -18,13 +15,12 @@ pub enum FileAction {
     Paste(String),
     PickFiles,
     PickFolders,
-    AddFiles(Vec<PathBuf>),
-    AddFolders(Vec<PathBuf>),
+    DroppedItems(Vec<PathBuf>),
     AddWildcard(String),
     ToggleColumn(TableColumns),
 }
 
-pub fn handle(state: Arc<Mutex<State>>, action: &FileAction, sender: &Sender<Action>) {
+pub fn handle(state: Arc<Mutex<State>>, action: &FileAction) {
     match action {
         FileAction::Refresh => State::refresh(state),
         FileAction::Paste(to_paste) => {
@@ -35,14 +31,9 @@ pub fn handle(state: Arc<Mutex<State>>, action: &FileAction, sender: &Sender<Act
                 .collect();
             State::add_files(state, pasted_lines);
         }
-        FileAction::PickFiles => pick_files(&mut State::lock(&state), sender.clone()),
-        FileAction::PickFolders => pick_folders(&mut State::lock(&state), sender.clone()),
-        FileAction::AddFiles(new_files) => {
-            State::add_files(state, new_files.clone());
-        }
-        FileAction::AddFolders(folders) => {
-            State::add_files(state, get_files(folders));
-        }
+        FileAction::PickFiles => pick_files(state),
+        FileAction::PickFolders => pick_folders(state),
+        FileAction::DroppedItems(folders) => State::add_files(state, get_files(folders)),
         FileAction::AddWildcard(wildcard) => {
             State::lock(&state).open_extra_window = OpenWindow::None;
 
@@ -51,45 +42,25 @@ pub fn handle(state: Arc<Mutex<State>>, action: &FileAction, sender: &Sender<Act
                 State::add_files(state, get_files(&list));
             }
         }
-        FileAction::ToggleColumn(table_column) => {
-            State::toggle_column(state, table_column);
-        }
+        FileAction::ToggleColumn(table_column) => State::toggle_column(state, table_column),
     }
 }
 
-fn pick_files(state: &mut State, sender: Sender<Action>) {
-    state.async_action = AsyncAction::FileDialog;
+fn pick_files(state: Arc<Mutex<State>>) {
+    State::lock(&state).async_action = AsyncAction::FileDialog;
     std::thread::spawn(move || {
-        let task = rfd::AsyncFileDialog::new().pick_files();
-        futures::executor::block_on(async {
-            if let Some(files) = task.await {
-                sender
-                    .send(Action::Files(FileAction::AddFiles(
-                        files
-                            .iter()
-                            .map(|f| f.path().to_path_buf())
-                            .filter(|f| f.is_file())
-                            .collect(),
-                    )))
-                    .expect("The receiver should always be available");
-            }
-        });
+        if let Some(files) = rfd::FileDialog::new().pick_files() {
+            State::add_files(state, files.into_iter().filter(|f| f.is_file()).collect());
+        }
     });
 }
 
-fn pick_folders(state: &mut State, sender: Sender<Action>) {
-    state.async_action = AsyncAction::FileDialog;
+fn pick_folders(state: Arc<Mutex<State>>) {
+    State::lock(&state).async_action = AsyncAction::FileDialog;
     std::thread::spawn(move || {
-        let task = rfd::AsyncFileDialog::new().pick_folders();
-        futures::executor::block_on(async {
-            if let Some(folders) = task.await {
-                sender
-                    .send(Action::Files(FileAction::AddFolders(
-                        folders.iter().map(|f| f.path().to_path_buf()).collect(),
-                    )))
-                    .expect("The receiver should always be available");
-            }
-        });
+        if let Some(folders) = rfd::FileDialog::new().pick_folders() {
+            State::add_files(state, get_files(&folders));
+        }
     });
 }
 

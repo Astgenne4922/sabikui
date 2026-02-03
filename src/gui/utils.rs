@@ -94,19 +94,16 @@ pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
         ui.horizontal(|ui| {
             ui.text_edit_singleline(&mut text);
             if ui.button("...").clicked() {
-                let task = rfd::AsyncFileDialog::new().pick_folder();
                 let ctx = ctx.clone();
                 ctx.data_mut(|data| {
                     data.insert_temp("wildcard_pick_folder".into(), true);
                 });
 
                 std::thread::spawn(move || {
-                    let folder = futures::executor::block_on(task);
-
                     ctx.data_mut(|data| {
                         data.insert_temp("wildcard_pick_folder".into(), false);
-                        if let Some(folder) = folder {
-                            data.insert_temp("add_wildcard_text".into(), folder.path().display().to_string());
+                        if let Some(folder) = rfd::FileDialog::new().pick_folder() {
+                            data.insert_temp("add_wildcard_text".into(), folder.display().to_string());
                         }
                     });
                 });

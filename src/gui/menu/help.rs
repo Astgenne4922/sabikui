@@ -65,8 +65,8 @@ fn keybinds(ui: &mut Ui) {
                 Action::Selection(SelectionAction::DeselectAll) => labels::DESELECT_ALL,
                 Action::Selection(SelectionAction::SaveSelected) => labels::SAVE_SELECTED,
                 Action::Selection(SelectionAction::ClearSelected) => labels::CLEAR_SELECTED,
-                Action::Files(FileAction::AddFiles(_)) => labels::ADD_FILE,
-                Action::Files(FileAction::AddFolders(_)) => labels::ADD_FOLDER,
+                Action::Files(FileAction::PickFiles) => labels::ADD_FILE,
+                Action::Files(FileAction::PickFolders) => labels::ADD_FOLDER,
                 Action::Window(WindowAction::OpenExternalWindow(OpenWindow::AddWildcard)) => labels::ADD_WILDCARD,
                 _ => unreachable!(),
             };
