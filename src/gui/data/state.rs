@@ -335,6 +335,10 @@ impl State {
             this.lock().expect("The lock was poisoned").async_action = AsyncAction::None;
         });
     }
+
+    pub fn lock(this: &Arc<Mutex<Self>>) -> MutexGuard<'_, Self> {
+        this.lock().expect("The lock was poisoned")
+    }
 }
 
 // GETTERS

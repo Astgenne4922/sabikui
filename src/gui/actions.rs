@@ -31,11 +31,7 @@ impl ActionHandler {
         while let Ok(action) = self.message_receiver.try_recv() {
             match action {
                 Action::Files(action) => files::handle(Arc::clone(state), &action, sender),
-                Action::Selection(action) => {
-                    selection::handle(&mut state.lock().expect("The lock was poisoned"), &action);
-                }
-                Action::Options(action) => options::handle(&mut state.lock().expect("The lock was poisoned"), &action),
-                Action::Window(action) => window::handle(&mut state.lock().expect("The lock was poisoned"), &action),
+                Action::Selection(action) => selection::handle(Arc::clone(state), &action),
             }
         }
     }
