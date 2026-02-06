@@ -370,11 +370,10 @@ impl<'de> Deserialize<'de> for State {
         D: serde::Deserializer<'de>,
     {
         let pers = StatePersistence::deserialize(deserializer)?;
-        let hashes = algorithms::get_hash_functions();
+        let columns = {
+            let hashes = algorithms::get_hash_functions();
 
-        Ok(Self {
-            files: Vec::default(),
-            columns: pers
+            let cols: Vec<_> = pers
                 .columns
                 .iter()
                 .map(|(col, check)| (TableColumns::from(col.as_ref()), check.as_bool().unwrap()))
@@ -382,7 +381,19 @@ impl<'de> Deserialize<'de> for State {
                     (TableColumns::Algorithms(alg), _) => hashes.contains(alg),
                     _ => true,
                 })
-                .collect(),
+                .collect();
+            let hashes: Vec<_> = hashes
+                .iter()
+                .map(|alg| (TableColumns::Algorithms(alg.clone()), false))
+                .filter(|(alg, _)| !cols.iter().any(|(col, _)| col == alg))
+                .collect();
+
+            cols.into_iter().chain(hashes).collect()
+        };
+
+        Ok(Self {
+            files: Vec::default(),
+            columns,
             sorting_column: None,
             always_on_top: pers.options.always_on_top,
             mark_same: pers.options.mark_same,
