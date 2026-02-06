@@ -18,7 +18,6 @@ pub const VIEW_MENU: &str = "View";
 pub const SORT_BY: &str = "Sort By";
 pub const FULL_PATH: &str = "Full Path";
 pub const FILENAME: &str = "Filename";
-pub const ALGORITHM: &str = "Algorithm";
 pub const EDIT_TIME: &str = "Edit Time";
 pub const FILE_SIZE: &str = "File Size (Bytes)";
 pub const EXTENSION: &str = "Extension";
