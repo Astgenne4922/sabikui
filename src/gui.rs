@@ -2,7 +2,7 @@ use crate::gui::{
     actions::{Action, ActionHandler, files::FileAction, selection::SelectionAction},
     config::{
         state::{load_config, save_config},
-        theme::{self, Theme, save_theme},
+        theme,
     },
     constants::{labels, shortcuts},
     data::state::{AsyncAction, OpenWindow, State},
@@ -15,7 +15,7 @@ use std::sync::{Arc, Mutex, mpsc};
 
 mod actions;
 mod config;
-mod constants;
+pub mod constants;
 mod data;
 mod menu;
 mod table;
@@ -28,8 +28,6 @@ pub fn run() {
 
 struct Sabikui {
     state: Arc<Mutex<State>>,
-    dark_theme: Theme,
-    light_theme: Theme,
     menu: Menu,
     table: Table,
     action_handler: ActionHandler,
@@ -61,15 +59,13 @@ impl Sabikui {
 
         cc.egui_ctx.set_fonts(fonts);
 
-        let dark_theme = theme::load_theme(theme::Mode::Dark).unwrap_or(theme::Theme::dark());
-        let light_theme = theme::load_theme(theme::Mode::Light).unwrap_or(theme::Theme::light());
         cc.egui_ctx.options_mut(|opt| {
             opt.dark_style = Arc::new(egui::Style {
-                visuals: dark_theme.visuals(),
+                visuals: theme::load_theme(theme::Mode::Dark).visuals(),
                 ..Default::default()
             });
             opt.light_style = Arc::new(egui::Style {
-                visuals: light_theme.visuals(),
+                visuals: theme::load_theme(theme::Mode::Light).visuals(),
                 ..Default::default()
             });
         });
@@ -78,8 +74,6 @@ impl Sabikui {
 
         Self {
             state: Arc::new(Mutex::new(load_config())),
-            dark_theme,
-            light_theme,
             menu: Menu::new(sx.clone()),
             table: Table::new(sx.clone()),
             action_handler: ActionHandler::new(rx),
@@ -91,9 +85,6 @@ impl Sabikui {
 impl Drop for Sabikui {
     fn drop(&mut self) {
         save_config(&State::lock(&self.state));
-
-        save_theme(&self.dark_theme, theme::Mode::Dark);
-        save_theme(&self.light_theme, theme::Mode::Light);
     }
 }
 

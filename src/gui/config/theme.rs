@@ -2,7 +2,7 @@ use std::fs;
 
 use egui::{
     CornerRadius, Shadow, Stroke, Visuals,
-    ecolor::ParseHexColorError,
+    ecolor::{HexColor, ParseHexColorError},
     style::{Selection, TextCursorStyle, WidgetVisuals, Widgets},
 };
 use serde::{Deserialize, Serialize, de::Visitor};
@@ -11,7 +11,7 @@ use crate::gui::constants;
 
 struct Color32(egui::Color32);
 
-pub fn load_theme(mode: Mode) -> Option<Theme> {
+pub fn load_theme(mode: Mode) -> Theme {
     let file = dirs::config_dir()
         .expect("There should be a config directory")
         .join(constants::CONFIG_DIRECTORY)
@@ -20,33 +20,18 @@ pub fn load_theme(mode: Mode) -> Option<Theme> {
         Mode::Dark => file.join(constants::DARK_THEME_FILE),
         Mode::Light => file.join(constants::LIGHT_THEME_FILE),
     };
-    fs::read(file)
+    let theme = fs::read(file)
         .ok()
         .and_then(|file| toml::from_slice(&file).ok())
-        .map(|t| Theme { mode, ..t })
-}
+        .unwrap_or_else(|| {
+            let file = match mode {
+                Mode::Dark => include_bytes!("../../../assets/theme/dark.toml"),
+                Mode::Light => include_bytes!("../../../assets/theme/light.toml"),
+            };
+            toml::from_slice(file).expect("The default theme file should always be correct")
+        });
 
-pub fn save_theme(theme: &Theme, mode: Mode) {
-    let file = dirs::config_dir()
-        .expect("There should be a config directory")
-        .join(constants::CONFIG_DIRECTORY)
-        .join(constants::THEME_DIRECTORY);
-    if !file.exists() {
-        fs::create_dir(&file).unwrap(); // TODO handle errors
-    }
-
-    let file = match mode {
-        Mode::Dark => file.join(constants::DARK_THEME_FILE),
-        Mode::Light => file.join(constants::LIGHT_THEME_FILE),
-    };
-
-    if !file.exists() {
-        fs::write(
-            file,
-            toml::to_string_pretty(&theme).expect("The serialization should not fail"),
-        )
-        .unwrap();
-    }
+    Theme { mode, ..theme }
 }
 
 #[derive(Default, Deserialize, Serialize, Clone, Copy)]
@@ -77,124 +62,6 @@ pub struct Theme {
 }
 
 impl Theme {
-    pub const fn dark() -> Self {
-        use crate::gui::constants::colors::gruvbox::dark::{
-            BG, BG_0, BG_0_HARD, BG_0_SOFT, BG_1, BG_2, BG_3, BG_4, BLUE, BLUE_ALT, DARK_GRAY, FG_0, FG_2, FG_3, FG_4,
-            ORANGE, RED,
-        };
-
-        Self {
-            widgets: WidgetsTheme {
-                noninteractive: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_0),
-                    bg_fill: Color32(BG_0),
-                    bg_stroke: Color32(BG_3),
-                    fg_stroke: Color32(DARK_GRAY),
-                },
-                inactive: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_3),
-                    bg_fill: Color32(BG_3),
-                    bg_stroke: Color32(egui::Color32::TRANSPARENT),
-                    fg_stroke: Color32(FG_3),
-                },
-                hovered: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_2),
-                    bg_fill: Color32(BG_2),
-                    bg_stroke: Color32(DARK_GRAY),
-                    fg_stroke: Color32(FG_0),
-                },
-                active: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_2),
-                    bg_fill: Color32(BG_2),
-                    bg_stroke: Color32(FG_0),
-                    fg_stroke: Color32(FG_0),
-                },
-                open: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_1),
-                    bg_fill: Color32(BG_0),
-                    bg_stroke: Color32(BG_3),
-                    fg_stroke: Color32(FG_2),
-                },
-            },
-            selection: SelectionTheme {
-                bg_fill: Color32(BLUE_ALT),
-                stroke: Color32(BG_0_SOFT),
-            },
-            hyperlink_color: Color32(BLUE),
-            faint_bg_color: Color32(BG_0_SOFT),
-            extreme_bg_color: Color32(BG_0_HARD),
-            code_bg_color: Color32(BG_4),
-            warn_fg_color: Color32(ORANGE),
-            error_fg_color: Color32(RED),
-            window_shadow: Color32(BG_1),
-            window_fill: Color32(BG),
-            window_stroke: Color32(BG_3),
-            panel_fill: Color32(BG),
-            popup_shadow: Color32(BG_1),
-            text_cursor: Color32(FG_4),
-            mode: Mode::Dark,
-        }
-    }
-
-    pub const fn light() -> Self {
-        use crate::gui::constants::colors::gruvbox::light::{
-            BG, BG_0, BG_0_HARD, BG_0_SOFT, BG_1, BG_2, BG_3, BG_4, BLUE, BLUE_ALT, DARK_GRAY, FG_0, FG_2, FG_3, FG_4,
-            ORANGE, RED,
-        };
-
-        Self {
-            widgets: WidgetsTheme {
-                noninteractive: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_0),
-                    bg_fill: Color32(BG_0),
-                    bg_stroke: Color32(BG_3),
-                    fg_stroke: Color32(DARK_GRAY),
-                },
-                inactive: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_3),
-                    bg_fill: Color32(BG_3),
-                    bg_stroke: Color32(egui::Color32::TRANSPARENT),
-                    fg_stroke: Color32(FG_3),
-                },
-                hovered: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_2),
-                    bg_fill: Color32(BG_2),
-                    bg_stroke: Color32(DARK_GRAY),
-                    fg_stroke: Color32(FG_0),
-                },
-                active: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_2),
-                    bg_fill: Color32(BG_2),
-                    bg_stroke: Color32(FG_0),
-                    fg_stroke: Color32(FG_0),
-                },
-                open: WidgetPropertyTheme {
-                    weak_bg_fill: Color32(BG_1),
-                    bg_fill: Color32(BG_0),
-                    bg_stroke: Color32(BG_3),
-                    fg_stroke: Color32(FG_2),
-                },
-            },
-            selection: SelectionTheme {
-                bg_fill: Color32(BLUE_ALT),
-                stroke: Color32(BG_0_SOFT),
-            },
-            hyperlink_color: Color32(BLUE),
-            faint_bg_color: Color32(BG_0_SOFT),
-            extreme_bg_color: Color32(BG_0_HARD),
-            code_bg_color: Color32(BG_4),
-            warn_fg_color: Color32(ORANGE),
-            error_fg_color: Color32(RED),
-            window_shadow: Color32(BG_1),
-            window_fill: Color32(BG),
-            window_stroke: Color32(BG_3),
-            panel_fill: Color32(BG),
-            popup_shadow: Color32(BG_1),
-            text_cursor: Color32(FG_4),
-            mode: Mode::Light,
-        }
-    }
-
     pub fn visuals(&self) -> Visuals {
         let default = match self.mode {
             Mode::Dark => Visuals::dark(),
@@ -310,7 +177,7 @@ impl Serialize for Color32 {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.0.to_hex())
+        serializer.serialize_str(&HexColor::Hex6(self.0).to_string())
     }
 }
 

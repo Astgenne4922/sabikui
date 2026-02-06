@@ -1,4 +1,4 @@
-use egui::Color32;
+use egui::{Color32, vec2};
 use egui_extras::TableRow;
 
 use crate::gui::{
@@ -30,18 +30,12 @@ pub fn rows(row: &mut TableRow, columns: &[TableColumns], state: &State) -> Vec<
     for col in columns {
         row.col(|ui| {
             ui.style_mut().interaction.selectable_labels = false;
-            if let Some(color) = color_idx.map(|idx| {
-                if ui.style().visuals.dark_mode {
-                    // TODO missed colors
-                    colors::gruvbox::dark::HIGHLIGHT[idx]
-                } else {
-                    colors::gruvbox::light::HIGHLIGHT[idx]
-                }
-            }) && !state.selected_rows().contains(&index)
+            if let Some(color) = color_idx.map(|idx| colors::HIGHLIGHT[idx])
+                && !state.selected_rows().contains(&index)
             {
-                let gapless_rect = ui.max_rect().expand2(0.5 * ui.spacing().item_spacing);
+                let gapless_rect = ui.max_rect().expand2(vec2((0.5 * ui.spacing().item_spacing).x, 0.0));
                 ui.painter().rect_filled(gapless_rect, 0.0, color);
-                ui.style_mut().visuals.widgets.noninteractive.fg_stroke.color = Color32::from_rgb(40, 40, 40);
+                ui.style_mut().visuals.widgets.noninteractive.fg_stroke.color = Color32::from_rgb(40, 40, 40); // #282828
             }
             ui.label(file.get_from_column(col));
         });
