@@ -112,7 +112,7 @@ impl State {
             let refreshed = HashedFile::build_vec(&files, &alg_list);
 
             let mut lock = Self::lock(&this);
-            lock.files.extend(refreshed);
+            lock.files = refreshed;
             let sorting_column = &lock.sorting_column;
             if let Some((column, reverse)) = sorting_column.clone() {
                 lock.files.sort_by_key(|f| f.get_from_column(&column));
