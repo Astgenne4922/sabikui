@@ -1,0 +1,46 @@
+hyperlink_color = "#458588"
+faint_bg_color = "#32302f"
+extreme_bg_color = "#1d2021"
+code_bg_color = "#7c6f64"
+warn_fg_color = "#d65d0e"
+error_fg_color = "#cc241d"
+window_shadow = "#3c3836"
+window_fill = "#282828"
+window_stroke = "#665c54"
+panel_fill = "#282828"
+popup_shadow = "#3c3836"
+text_cursor = "#a89984"
+
+[widgets.noninteractive]
+weak_bg_fill = "#282828"
+bg_fill = "#282828"
+bg_stroke = "#665c54"
+fg_stroke = "#928374"
+
+[widgets.inactive]
+weak_bg_fill = "#665c54"
+bg_fill = "#665c54"
+bg_stroke = "#000000"
+fg_stroke = "#bdae93"
+
+[widgets.hovered]
+weak_bg_fill = "#504945"
+bg_fill = "#504945"
+bg_stroke = "#928374"
+fg_stroke = "#fbf1c7"
+
+[widgets.active]
+weak_bg_fill = "#504945"
+bg_fill = "#504945"
+bg_stroke = "#fbf1c7"
+fg_stroke = "#fbf1c7"
+
+[widgets.open]
+weak_bg_fill = "#3c3836"
+bg_fill = "#282828"
+bg_stroke = "#665c54"
+fg_stroke = "#d5c4a1"
+
+[selection]
+bg_fill = "#83a598"
+stroke = "#32302f"

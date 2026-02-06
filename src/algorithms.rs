@@ -1,11 +1,19 @@
 use std::{
-    fs,
     path::{Path, PathBuf},
     process::Command,
 };
 
+use crate::gui::constants;
+
+fn get_directory() -> PathBuf {
+    dirs::config_dir()
+        .expect("There should be a config directory")
+        .join(constants::CONFIG_DIRECTORY)
+        .join(constants::ALG_DIRECTORY)
+}
+
 pub fn get_hash_functions() -> Vec<String> {
-    let mut hashes: Vec<String> = fs::read_dir("./hash_functions")
+    let mut hashes: Vec<String> = std::fs::read_dir(get_directory())
         // TODO Handle errors
         .unwrap()
         .flatten()
@@ -22,7 +30,7 @@ pub fn get_hash_functions() -> Vec<String> {
 }
 
 pub fn one_hash_one_file(function: &str, file: &Path) -> String {
-    let hash = Command::new(format!("./hash_functions/{function}"))
+    let hash = Command::new(get_directory().join(function))
         .arg(file)
         .output()
         // TODO Handle errors
@@ -34,7 +42,7 @@ pub fn one_hash_many_files(function: &str, files: &[PathBuf]) -> Vec<String> {
     let mut output = Vec::new();
 
     for chunk in files.chunks(200) {
-        let hash = Command::new(format!("./hash_functions/{function}"))
+        let hash = Command::new(get_directory().join(function))
             .args(chunk)
             .output()
             // TODO Handle errors
