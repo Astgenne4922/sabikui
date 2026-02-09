@@ -4,31 +4,31 @@ use egui::{
 
 use crate::gui::{
     actions::{Action, files::FileAction, options::OptionsAction, selection::SelectionAction, window::WindowAction},
-    constants::labels,
     data::{
         state::{AsyncAction, OpenWindow, State},
         table_columns::TableColumns,
     },
     utils::{check_button, open_window},
 };
+use rust_i18n::t;
 
 pub fn menu(
     ui: &mut Ui, columns: &[(TableColumns, bool)], always_on_top: bool, mark_same: bool, state: &State,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
-    ui.menu_button(labels::OPTIONS_MENU, |ui| {
-        if ui.button(labels::CHOOSE_COLUMNS).clicked() {
+    ui.menu_button(t!("Options"), |ui| {
+        if ui.button(t!("Choose Columns")).clicked() {
             events.push(Action::Window(WindowAction::OpenExternalWindow(
                 OpenWindow::ChooseColunms,
             )));
         }
 
-        if check_button(ui, labels::HIGHLIGHT, mark_same).clicked() {
+        if check_button(ui, t!("Highlight identical Hashes"), mark_same).clicked() {
             events.push(Action::Options(OptionsAction::ToggleMarkSame));
         }
 
-        if check_button(ui, labels::ALWAYS_ON_TOP, always_on_top).clicked() {
+        if check_button(ui, t!("Always on Top"), always_on_top).clicked() {
             events.push(Action::Options(OptionsAction::ToggleAlwaysOnTop));
             if *state.always_on_top() {
                 ui.ctx()
@@ -43,7 +43,7 @@ pub fn menu(
     });
 
     if state.open_extra_window == OpenWindow::ChooseColunms {
-        events.extend(open_window(ui.ctx(), labels::CHOOSE_COLUMNS.to_string(), true, |ui| {
+        events.extend(open_window(ui.ctx(), t!("Choose Columns"), true, |ui| {
             if state.async_action == AsyncAction::HashProcessing {
                 ui.disable();
             }
@@ -65,7 +65,7 @@ fn choose_columns(ui: &mut Ui, columns: &[(TableColumns, bool)]) -> Vec<Action> 
             mouse_wheel: true,
         })
         .show(ui, |ui| {
-            let response = egui_dnd::dnd(ui, labels::CHOOSE_COLUMNS).show_custom(|ui, item_iter| {
+            let response = egui_dnd::dnd(ui, t!("Choose Columns")).show_custom(|ui, item_iter| {
                 for (idx, (column, is_checked)) in columns.iter().enumerate() {
                     item_iter.next(ui, Id::new(column), idx, true, |ui, item_handle| {
                         item_handle.ui(ui, |ui, handle, _state| {

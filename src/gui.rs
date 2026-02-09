@@ -4,13 +4,14 @@ use crate::gui::{
         state::{load_config, save_config},
         theme,
     },
-    constants::{labels, shortcuts},
+    constants::shortcuts,
     data::state::{AsyncAction, OpenWindow, State},
     menu::Menu,
     table::Table,
 };
 use eframe::{App, CreationContext, Frame, NativeOptions, run_native};
 use egui::{CentralPanel, Context, Event, FontData, FontDefinitions, FontFamily, TopBottomPanel, Ui};
+use rust_i18n::t;
 use std::sync::{Arc, Mutex, mpsc};
 
 mod actions;
@@ -101,7 +102,7 @@ impl App for Sabikui {
             disable_ui(ui, &state);
             ui.style_mut().interaction.selectable_labels = false;
             ui.horizontal(|ui| {
-                ui.label(format!("{} {}", state.files().len(), labels::BOTTOM_BAR_TEXT));
+                ui.label(format!("{} {}", state.files().len(), t!("File/s")));
 
                 if state.async_action == AsyncAction::HashProcessing {
                     ui.spinner();

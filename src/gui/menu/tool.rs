@@ -1,8 +1,9 @@
 use egui::{FontId, Ui};
+use rust_i18n::t;
 
 use crate::gui::{
     actions::{Action, files::FileAction, selection::SelectionAction, window::WindowAction},
-    constants::{icons, labels},
+    constants::icons,
     data::state::OpenWindow,
 };
 
@@ -16,29 +17,29 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
 
         if ui
             .button(icons::SAVE_SELECTED)
-            .on_hover_text(labels::SAVE_SELECTED)
+            .on_hover_text(t!("Save Selected"))
             .clicked()
         {
             events.push(Action::Selection(SelectionAction::SaveSelected));
         }
 
-        if ui.button(icons::REFRESH).on_hover_text(labels::REFRESH).clicked() {
+        if ui.button(icons::REFRESH).on_hover_text(t!("Refresh")).clicked() {
             events.push(Action::Files(FileAction::Refresh));
         }
 
         ui.separator();
 
-        if ui.button(icons::ADD_FILE).on_hover_text(labels::ADD_FILE).clicked() {
+        if ui.button(icons::ADD_FILE).on_hover_text(t!("Add File")).clicked() {
             events.push(Action::Files(FileAction::PickFiles));
         }
 
-        if ui.button(icons::ADD_FOLDER).on_hover_text(labels::ADD_FOLDER).clicked() {
+        if ui.button(icons::ADD_FOLDER).on_hover_text(t!("Add Folder")).clicked() {
             events.push(Action::Files(FileAction::PickFolders));
         }
 
         if ui
             .button(icons::ADD_WILDCARD)
-            .on_hover_text(labels::ADD_WILDCARD)
+            .on_hover_text(t!("Add by Wildcard"))
             .clicked()
         {
             events.push(Action::Window(WindowAction::OpenExternalWindow(
@@ -48,19 +49,19 @@ pub fn bar(ui: &mut Ui) -> Vec<Action> {
 
         ui.separator();
 
-        if ui.button(icons::SELECT_ALL).on_hover_text(labels::SELECT_ALL).clicked() {
+        if ui.button(icons::SELECT_ALL).on_hover_text(t!("Select All")).clicked() {
             events.push(Action::Selection(SelectionAction::SelectAll));
         }
 
         if ui
             .button(icons::COPY_SELECTED)
-            .on_hover_text(labels::COPY_SELECTED)
+            .on_hover_text(t!("Copy Selected"))
             .clicked()
         {
             events.push(Action::Selection(SelectionAction::ClearSelected));
         }
 
-        if ui.button(icons::CLEAR_ALL).on_hover_text(labels::CLEAR_ALL).clicked() {
+        if ui.button(icons::CLEAR_ALL).on_hover_text(t!("Clear All")).clicked() {
             events.push(Action::Selection(SelectionAction::ClearAll));
         }
     });

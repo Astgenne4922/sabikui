@@ -1,8 +1,9 @@
 use egui::{Event, Response};
+use rust_i18n::t;
 
 use crate::gui::{
     actions::{Action, files::FileAction, options::OptionsAction, selection::SelectionAction},
-    constants::{labels, shortcuts},
+    constants::shortcuts,
     data::table_columns::TableColumns,
     utils::{long_submenu, shortcut_button},
 };
@@ -12,15 +13,15 @@ pub fn open(response: &Response, are_row_selected: bool, active_columns: &[Table
 
     response.context_menu(|ui| {
         ui.add_enabled_ui(are_row_selected, |ui| {
-            if shortcut_button(ui, labels::SAVE_SELECTED, shortcuts::SAVE_SELECTED).clicked() {
+            if shortcut_button(ui, t!("Save Selected"), shortcuts::SAVE_SELECTED).clicked() {
                 events.push(Action::Selection(SelectionAction::SaveSelected));
             }
 
-            if shortcut_button(ui, labels::COPY_SELECTED, shortcuts::COPY_SELECTED).clicked() {
+            if shortcut_button(ui, t!("Copy Selected"), shortcuts::COPY_SELECTED).clicked() {
                 events.push(Action::Selection(SelectionAction::CopySelected));
             }
 
-            long_submenu(ui, labels::COPY, active_columns, |ui, col| {
+            long_submenu(ui, t!("Copy"), active_columns, |ui, col| {
                 if ui.button(col.to_string()).clicked() {
                     events.push(Action::Options(OptionsAction::CopyProperty(col.clone())));
                 }
@@ -29,7 +30,7 @@ pub fn open(response: &Response, are_row_selected: bool, active_columns: &[Table
 
         ui.separator();
 
-        if shortcut_button(ui, labels::EXPLORER_PASTE, shortcuts::EXPLORER_PASTE).clicked() {
+        if shortcut_button(ui, t!("Explorer Paste"), shortcuts::EXPLORER_PASTE).clicked() {
             ui.ctx().input(|i| {
                 for event in &i.events {
                     if let Event::Paste(to_paste) = event {
@@ -41,7 +42,7 @@ pub fn open(response: &Response, are_row_selected: bool, active_columns: &[Table
 
         ui.separator();
 
-        if shortcut_button(ui, labels::REFRESH, shortcuts::REFRESH).clicked() {
+        if shortcut_button(ui, t!("Refresh"), shortcuts::REFRESH).clicked() {
             events.push(Action::Files(FileAction::Refresh));
         }
     });

@@ -2,20 +2,21 @@ use egui::{
     Button, Context, KeyboardShortcut, ModifierNames, Response, ScrollArea, TextWrapMode, Ui, Window,
     scroll_area::ScrollSource, style::ScrollStyle,
 };
+use rust_i18n::t;
 
 use crate::gui::{
     actions::{Action, files::FileAction, window::WindowAction},
-    constants::{icons, labels},
+    constants::icons,
     data::table_columns::TableColumns,
 };
 
-pub fn shortcut_button(ui: &mut Ui, label: &str, shortcut: KeyboardShortcut) -> Response {
-    ui.add(Button::new(label).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))
+pub fn shortcut_button(ui: &mut Ui, label: impl Into<String>, shortcut: KeyboardShortcut) -> Response {
+    ui.add(Button::new(label.into()).shortcut_text(shortcut.format(&ModifierNames::NAMES, cfg!(target_os = "macos"))))
 }
 
-pub fn check_button(ui: &mut Ui, label: &str, is_checked: bool) -> Response {
-    let check = if is_checked { "󰄬" } else { "" };
-    ui.add(Button::new(label).right_text(check))
+pub fn check_button(ui: &mut Ui, label: impl Into<String>, is_checked: bool) -> Response {
+    let check = if is_checked { "󰄬" } else { " " };
+    ui.add(Button::new(label.into()).right_text(check))
 }
 
 pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(TableColumns, bool)>) -> Response {
@@ -28,7 +29,7 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
             icons::ASCENDING
         }
     } else {
-        ""
+        " "
     };
     ui.add(
         Button::new(column.to_string())
@@ -37,12 +38,12 @@ pub fn sort_button(ui: &mut Ui, column: &TableColumns, sorting_column: Option<&(
     )
 }
 
-pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl FnMut(&mut Ui, &T)) {
+pub fn long_submenu<T>(ui: &mut Ui, label: impl Into<String>, items: &[T], mut add_item: impl FnMut(&mut Ui, &T)) {
     ui.scope(|ui| {
         if items.is_empty() {
             ui.disable();
         }
-        ui.menu_button(label, |ui| {
+        ui.menu_button(label.into(), |ui| {
             ui.spacing_mut().scroll = ScrollStyle::thin();
             ui.style_mut().wrap_mode = Some(TextWrapMode::Extend);
             ScrollArea::vertical()
@@ -61,12 +62,12 @@ pub fn long_submenu<T>(ui: &mut Ui, label: &str, items: &[T], mut add_item: impl
 }
 
 pub fn open_window(
-    ctx: &Context, title: String, enabled: bool, add_content: impl FnOnce(&mut Ui) -> Option<Vec<Action>>,
+    ctx: &Context, title: impl Into<String>, enabled: bool, add_content: impl FnOnce(&mut Ui) -> Option<Vec<Action>>,
 ) -> Vec<Action> {
     let mut events = Vec::new();
 
     let mut open = true;
-    Window::new(title)
+    Window::new(title.into())
         .collapsible(false)
         .resizable(false)
         .open(&mut open)
@@ -85,7 +86,7 @@ pub fn open_window(
 
 pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
     let open_dialog: bool = ctx.data(|data| data.get_temp("wildcard_pick_folder".into()).unwrap_or_default());
-    open_window(ctx, labels::ADD_WILDCARD.to_string(), !open_dialog, |ui| {
+    open_window(ctx, t!("Add by Wildcard").to_string(), !open_dialog, |ui| {
         let mut events = Vec::new();
         let mut text: String = ctx.data(|data| data.get_temp("add_wildcard_text".into()).unwrap_or_default());
 
@@ -113,11 +114,11 @@ pub fn wildcard_window(ctx: &Context) -> Vec<Action> {
         ui.add_space(10.0);
 
         ui.horizontal(|ui| {
-            if ui.button(labels::OK).clicked() {
+            if ui.button(t!("Ok")).clicked() {
                 events.push(Action::Files(FileAction::AddWildcard(text.clone())));
             }
 
-            if ui.button(labels::CANCEL).clicked() {
+            if ui.button(t!("Cancel")).clicked() {
                 events.push(Action::Window(WindowAction::CloseExternalWindow));
             }
         });

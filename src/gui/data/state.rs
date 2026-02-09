@@ -433,7 +433,7 @@ impl StatePersistence {
             },
             columns: columns
                 .iter()
-                .map(|(col, check)| (col.to_string().to_lowercase(), toml::Value::Boolean(*check)))
+                .map(|(col, check)| (format!("{col:?}"), toml::Value::Boolean(*check)))
                 .collect(),
         }
     }

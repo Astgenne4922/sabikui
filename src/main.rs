@@ -4,7 +4,11 @@ mod gui;
 
 use cli::parser::Parser as _;
 
+rust_i18n::i18n!();
+
 fn main() {
+    rust_i18n::set_locale(&sys_locale::get_locale().unwrap());
+
     let args = cli::parser::Args::parse();
 
     if args.list {
