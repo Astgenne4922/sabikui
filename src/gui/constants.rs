@@ -8,3 +8,4 @@ pub const ALG_DIRECTORY: &str = "hash_functions";
 pub const THEME_DIRECTORY: &str = "theme";
 pub const DARK_THEME_FILE: &str = "dark.toml";
 pub const LIGHT_THEME_FILE: &str = "light.toml";
+pub const LOG_FILE: &str = "sabigui.log";
