@@ -105,7 +105,11 @@ impl State {
 
                 (
                     lock.algorithm_list(),
-                    lock.files.iter().map(HashedFile::get_path).collect::<Vec<_>>(),
+                    lock.files
+                        .iter()
+                        .map(HashedFile::get_path)
+                        .filter(|p| p.exists())
+                        .collect::<Vec<_>>(),
                 )
             };
 
