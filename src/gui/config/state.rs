@@ -20,5 +20,5 @@ pub fn save_config(state: &State) {
             .join(constants::CONFIG_FILE),
         toml::to_string_pretty(&state).expect("The serialization should not fail"),
     )
-    .unwrap(); // TODO handle errors
+    .expect("The config file should be writeable");
 }

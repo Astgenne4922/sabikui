@@ -22,9 +22,11 @@ mod menu;
 mod table;
 mod utils;
 
+#[expect(clippy::missing_panics_doc, reason = "Panic by design")]
 pub fn run() {
     let native_options = NativeOptions::default();
-    run_native("Sabikui", native_options, Box::new(|cc| Ok(Box::new(Sabikui::new(cc))))).unwrap();
+    run_native("Sabikui", native_options, Box::new(|cc| Ok(Box::new(Sabikui::new(cc)))))
+        .expect("The graphic context should always be available");
 }
 
 struct Sabikui {
@@ -49,13 +51,13 @@ impl Sabikui {
         fonts
             .families
             .get_mut(&FontFamily::Proportional)
-            .unwrap()
+            .expect("The font mapkey should always be present")
             .insert(0, "jet_brains_mono_nerd".to_owned());
 
         fonts
             .families
             .get_mut(&FontFamily::Monospace)
-            .unwrap()
+            .expect("The font mapkey should always be present")
             .push("jet_brains_mono_nerd".to_owned());
 
         cc.egui_ctx.set_fonts(fonts);
@@ -121,7 +123,11 @@ impl App for Sabikui {
 
             if !i.raw.dropped_files.is_empty() {
                 events.push(Action::Files(FileAction::DroppedItems(
-                    i.raw.dropped_files.iter().map(|f| f.path.clone().unwrap()).collect(),
+                    i.raw
+                        .dropped_files
+                        .iter()
+                        .map(|f| f.path.clone().expect("The dropped file should always have a path"))
+                        .collect(),
                 )));
             }
 

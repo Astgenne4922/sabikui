@@ -9,7 +9,9 @@ pub fn show(painter: &Painter, response: &Response, state: &State, x_offset: f32
     let mut events = Vec::new();
     if response.drag_started() {
         events.push(Action::Selection(SelectionAction::StartDrag(
-            response.interact_pointer_pos().unwrap(),
+            response
+                .interact_pointer_pos()
+                .expect("There should be a position for the pointer since a drag has been initiated"),
             vec2(x_offset, y_offset),
         )));
     }
@@ -24,9 +26,9 @@ pub fn show(painter: &Painter, response: &Response, state: &State, x_offset: f32
         painter.rect(
             Rect { min, max },
             0,
-            Color32::from_hex("#45858877").unwrap(),
+            Color32::from_hex("#45858877").expect("The color conversion is correct"),
             Stroke {
-                color: Color32::from_hex("#458588").unwrap(),
+                color: Color32::from_hex("#458588").expect("The color conversion is correct"),
                 width: 1.0,
             },
             StrokeKind::Middle,

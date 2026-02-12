@@ -4,6 +4,7 @@ use crate::algorithms;
 
 pub mod parser;
 
+#[expect(clippy::missing_panics_doc, reason = "Panic by design")]
 pub fn run(args: parser::Inputs, algorithms: &[String]) {
     let files = match args {
         parser::Inputs::File { path } if path.exists() && path.is_file() => vec![path],
@@ -20,8 +21,7 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
             }
 
             while let Some(dir) = dirs.pop_front() {
-                // TODO Handle errors
-                for entry in dir.read_dir().unwrap().flatten() {
+                for entry in dir.read_dir().expect("The directory should be readable").flatten() {
                     let path = entry.path();
 
                     if path.is_file() {
@@ -35,12 +35,11 @@ pub fn run(args: parser::Inputs, algorithms: &[String]) {
             files
         }
         parser::Inputs::Wildcard { regex } => glob::glob(&regex)
-            // TODO Handle errors
-            .unwrap()
+            .expect("The glob pattern should be valid")
             .flatten()
             .filter(|entry| entry.is_file())
             .collect(),
-        _ => panic!("Invalid argument"), // TODO Handle errors
+        _ => panic!("Invalid argument. Run with --help to view usage."),
     };
 
     let mut output = format!("filename,{}", algorithms.join(","));

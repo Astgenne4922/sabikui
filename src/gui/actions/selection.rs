@@ -112,7 +112,7 @@ fn save_selected(state: Arc<Mutex<State>>) {
                     copy_selected(lock.files(), lock.selected_rows(), &lock.active_columns()).replace('\t', ",")
                 ),
             )
-            .unwrap();
+            .expect("The save path should be writable");
 
             lock.async_action = AsyncAction::None;
         }

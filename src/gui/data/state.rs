@@ -376,7 +376,12 @@ impl<'de> Deserialize<'de> for State {
             let cols: Vec<_> = pers
                 .columns
                 .iter()
-                .map(|(col, check)| (TableColumns::from(col.as_ref()), check.as_bool().unwrap()))
+                .map(|(col, check)| {
+                    (
+                        TableColumns::from(col.as_ref()),
+                        check.as_bool().expect("This conversion should not fail"),
+                    )
+                })
                 .filter(|col| match col {
                     (TableColumns::Algorithms(alg), _) => hashes.contains(alg),
                     _ => true,

@@ -77,8 +77,7 @@ fn get_files(paths: &[PathBuf]) -> Vec<PathBuf> {
         }
 
         while let Some(dir) = dirs.pop_front() {
-            // TODO Handle errors
-            for entry in dir.read_dir().unwrap().flatten() {
+            for entry in dir.read_dir().expect("The directory should be readable").flatten() {
                 let path = entry.path();
 
                 if path.is_file() {
