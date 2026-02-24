@@ -8,7 +8,7 @@ use egui::{Pos2, Vec2};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    algorithms::{self, one_hash_many_files},
+    algorithms,
     gui::data::{
         hashed_file::{Digest, HashFunction, HashedFile},
         table_columns::TableColumns,
@@ -229,7 +229,7 @@ impl State {
             if is_checked {
                 Self::hash_processing(this, move |this| {
                     let files: Vec<_> = Self::lock(&this).files.iter().map(HashedFile::get_path).collect();
-                    let new_column = one_hash_many_files(&alg, &files);
+                    let new_column = &algorithms::calculate_hash(std::slice::from_ref(&alg), &files)[0];
 
                     let mut lock = Self::lock(&this);
                     for (i, hash) in new_column.iter().enumerate() {

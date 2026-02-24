@@ -34,6 +34,7 @@ rust-i18n = "3.1.5"
 serde = "1.0.228"
 simplelog = "0.12.2"
 sys-locale = "0.3.2"
+tempfile = "3.25.0"
 toml = { version = "0.9.11", features = ["preserve_order"] }
 
 [build-dependencies]

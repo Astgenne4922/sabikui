@@ -10,7 +10,7 @@ use std::os::windows::fs::MetadataExt;
 
 use chrono::{DateTime, Local};
 
-use crate::{algorithms::many_hashes_many_files, gui::data::table_columns::TableColumns};
+use crate::{algorithms, gui::data::table_columns::TableColumns};
 
 pub type HashFunction = String;
 pub type Digest = String;
@@ -61,7 +61,7 @@ impl HashedFile {
     }
 
     pub fn build_vec(paths: &[PathBuf], algorithms: &[HashFunction]) -> Vec<Self> {
-        let digests = many_hashes_many_files(algorithms, paths);
+        let digests = algorithms::calculate_hash(algorithms, paths);
 
         paths
             .iter()
