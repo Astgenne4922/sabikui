@@ -3,16 +3,20 @@ macro_rules! generate_main {
     ($hash:ident, $struct:ident) => {
         use $hash::{Digest as _, $struct};
 
-        fn main() {
-            let args = std::env::args().collect::<Vec<_>>();
+        fn main() -> Result<(), Box<dyn std::error::Error>> {
+            let input = std::env::args()
+                .next()
+                .ok_or("The program should take exactly one argument")?;
 
-            for file in &args[1..] {
-                let mut file = std::fs::File::open(file).expect("The file should exist and should be valid");
+            for file in std::fs::read_to_string(input)?.lines() {
+                let mut file = std::fs::File::open(file)?;
                 let mut hasher = $struct::new();
-                std::io::copy(&mut file, &mut hasher).expect("The file should be readable and the hasher should work");
+                std::io::copy(&mut file, &mut hasher)?;
 
                 println!("{}", base16ct::lower::encode_string(&hasher.finalize()));
             }
+
+            Ok(())
         }
     };
 }
