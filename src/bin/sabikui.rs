@@ -9,21 +9,20 @@ fn main() {
         for hash in algorithms::get_hash_functions() {
             println!("{hash}");
         }
-
-        return;
-    }
-
-    let mut functions = algorithms::get_hash_functions();
-    if let Some(algorithms) = args.algorithms {
-        functions.retain(|a| algorithms.contains(a));
-    }
-
-    if let Some(inputs) = args.input {
-        if functions.is_empty() {
-            println!("Algorithm names not supported/recognized");
-
-            return;
+    } else {
+        let mut functions = algorithms::get_hash_functions();
+        if let Some(algorithms) = args.algorithms {
+            functions.retain(|a| algorithms.contains(a));
         }
-        cli::run(inputs, &functions);
+
+        if let Some(inputs) = args.input {
+            if functions.is_empty() {
+                eprintln!("Algorithm names not supported/recognized");
+                std::process::exit(1);
+            } else if let Err(err) = cli::run(inputs, &functions) {
+                eprintln!("{err}");
+                std::process::exit(1);
+            }
+        }
     }
 }
